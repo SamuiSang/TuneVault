@@ -488,3 +488,7 @@ appsettings.json
 
 # Ignore Frontend dependencies
 node_modules/
+
+# Cấu hình IDE cá nhân
+.vs/
+.vscode/
