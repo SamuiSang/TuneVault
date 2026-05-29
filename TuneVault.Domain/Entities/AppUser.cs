@@ -34,4 +34,4 @@ namespace TuneVault.Domain.Entities
         public ICollection<Follow> Followers { get; set; } = new List<Follow>();
     }
 }
-}
+
