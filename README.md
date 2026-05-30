@@ -1,8 +1,9 @@
+
 ---
 
 # Dự án Ứng dụng Phát nhạc Trực tuyến (Spotify Clone)
 
-### 📌 Tóm tắt Dự án
+## 📌 Tóm tắt Dự án
 
 * 
 **Frontend (20%):** Xây dựng bằng React và TypeScript với giao diện tối (dark theme), bao gồm thanh điều hướng, vùng nội dung và player bar cố định.
@@ -177,4 +178,4 @@ Dự án sử dụng sơ đồ ERD với tối thiểu 10 bảng cốt lõi.
 
 
 * 
-**Giai đoạn 6:** Hoàn thiện tài liệu (README, xuất sơ đồ), tích hợp AI sinh mô tả để lấy điểm thưởng và cân nhắc quay video demo
+**Giai đoạn 6:** Hoàn thiện tài liệu (README, xuất sơ đồ), tích hợp AI sinh mô tả để lấy điểm thưởng và cân nhắc quay video demo.
