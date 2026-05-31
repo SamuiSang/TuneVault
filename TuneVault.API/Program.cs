@@ -1,10 +1,12 @@
+using TuneVault.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// ---> KÍCH HOẠT KẾT NỐI DATABASE VÀ REPOSITORY <---
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
