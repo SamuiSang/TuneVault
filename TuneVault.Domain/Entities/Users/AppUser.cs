@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿namespace TuneVault.Domain.Entities.Users;
+
+using Microsoft.AspNetCore.Identity;
 
 public class AppUser : IdentityUser
 {
