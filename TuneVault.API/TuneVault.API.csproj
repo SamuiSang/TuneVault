@@ -15,8 +15,4 @@
     <ProjectReference Include="..\TuneVault.Infrastructure\TuneVault.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

@@ -4,3 +4,24 @@ GET {{TuneVault.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+@TuneVault.API_HostAddress = http://localhost:5093
+
+GET {{TuneVault.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+### Kịch bản 1: Test lỗi Validation (Gửi tên quá ngắn)
+POST {{TuneVault.API_HostAddress}}/api/test/pipeline
+Content-Type: application/json
+
+{
+  "name": "a"
+}
+
+### Kịch bản 2: Test thành công
+POST {{TuneVault.API_HostAddress}}/api/test/pipeline
+Content-Type: application/json
+
+{
+  "name": "Sang Nguyễn"
+}
