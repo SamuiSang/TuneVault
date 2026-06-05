@@ -483,7 +483,6 @@ $RECYCLE.BIN/
 
 # Ignore API Keys and Secrets
 appsettings.Development.json
-appsettings.json
 .env
 
 # Ignore Frontend dependencies
