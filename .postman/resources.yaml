@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: f0029b34-7452-427b-8bf5-1a41bd204bae
+
+localResources:
+  specs:
+    - ..\TuneVault.API\obj\Debug\net10.0\EndpointInfo\TuneVault.API.json
