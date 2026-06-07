@@ -37,7 +37,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, BaseResponse<st
         // 3. Kích hoạt dịch vụ tạo Token
         var token = _tokenService.GenerateToken(user);
 
-        // 4. Trả kết quả thành công
+        // 4. Trả kết quả
         return new BaseResponse<string>(token, true, "Đăng nhập thành công!");
     }
 }
