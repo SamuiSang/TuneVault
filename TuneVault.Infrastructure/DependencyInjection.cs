@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
+using TuneVault.Application.Common.Interfaces;
+using TuneVault.Infrastructure.Services;
 
 namespace TuneVault.Infrastructure
 {
@@ -9,6 +11,7 @@ namespace TuneVault.Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddTransient<ITokenService, TokenService>();
             // Lấy chuỗi kết nối từ appsettings.json của tầng API
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 

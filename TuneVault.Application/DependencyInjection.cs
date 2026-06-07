@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Data;
+using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+
 using System.Reflection;
 using TuneVault.Application.Common.Behaviors;
 
@@ -27,7 +28,7 @@ public static class DependencyInjection
             config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
             config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
-
+        
         return services;
     }
 }
