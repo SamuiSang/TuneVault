@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuneVault - SignalR Notification Test</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Segoe UI, system-ui, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #0f1115;
+      color: #e8eaed;
+      padding: 24px;
+    }
+    h1 { margin-top: 0; font-size: 1.4rem; }
+    .card {
+      background: #171a21;
+      border: 1px solid #2a3140;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      max-width: 900px;
+    }
+    label { display: block; margin-bottom: 6px; color: #aeb6c2; font-size: 0.9rem; }
+    input, button, textarea {
+      font: inherit;
+      border-radius: 8px;
+      border: 1px solid #3a4354;
+      padding: 10px 12px;
+      background: #0f1115;
+      color: inherit;
+    }
+    input, textarea { width: 100%; box-sizing: border-box; margin-bottom: 12px; }
+    button {
+      cursor: pointer;
+      background: #3b82f6;
+      border-color: #3b82f6;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button.secondary { background: #374151; border-color: #374151; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      background: #374151;
+    }
+    #status.connected { background: #065f46; }
+    #status.error { background: #7f1d1d; }
+    #log {
+      height: 320px;
+      overflow: auto;
+      background: #0b0d11;
+      border: 1px solid #2a3140;
+      border-radius: 8px;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      font-size: 0.85rem;
+    }
+    .hint { color: #9aa3af; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>TuneVault — SignalR Notification Test (Giai đoạn 7.2)</h1>
+  <p class="hint">
+    1) Nhập User ID receiver → Connect → Join group.
+    2) Gửi notification qua REST hoặc Share Media.
+    3) Xem sự kiện <code>ReceiveNotification</code> xuất hiện bên dưới.
+  </p>
+
+  <div class="card">
+    <div style="margin-bottom: 12px;">
+      Trạng thái: <span id="status">Disconnected</span>
+    </div>
+
+    <label for="hubUrl">Hub URL</label>
+    <input id="hubUrl" value="/hubs/notifications" />
+
+    <label for="userId">User ID (receiver — dùng để join group)</label>
+    <input id="userId" value="U002" />
+
+    <button id="btnConnect">Connect</button>
+    <button id="btnDisconnect" class="secondary" disabled>Disconnect</button>
+    <button id="btnJoin" disabled>Join User Group</button>
+    <button id="btnPing" class="secondary" disabled>Ping</button>
+    <button id="btnClear" class="secondary">Clear log</button>
+  </div>
+
+  <div class="card">
+    <h2>Gửi test qua REST</h2>
+    <label for="apiBase">API base URL</label>
+    <input id="apiBase" value="" />
+
+    <label for="notifType">Notification type</label>
+    <input id="notifType" value="TestNotification" />
+
+    <label for="payloadJson">Payload JSON</label>
+    <textarea id="payloadJson" rows="4">{"message":"Hello from SignalR test page","source":"signalr-test.html"}</textarea>
+
+    <button id="btnSendNotif" disabled>POST /api/notifications/create</button>
+    <button id="btnShareMedia" class="secondary" disabled>POST /api/playlists/share/media</button>
+
+    <label for="mediaId">Media ID (cho share media)</label>
+    <input id="mediaId" value="11111111-1111-1111-1111-111111111111" />
+
+    <label for="senderId">Sender ID</label>
+    <input id="senderId" value="U001" />
+  </div>
+
+  <div class="card">
+    <h2>Event log</h2>
+    <div id="log"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    const apiBaseInput = document.getElementById('apiBase');
+    apiBaseInput.value = window.location.origin;
+
+    let connection = null;
+
+    function log(message, data) {
+      const time = new Date().toLocaleTimeString();
+      const line = data
+        ? `[${time}] ${message}\n${JSON.stringify(data, null, 2)}\n\n`
+        : `[${time}] ${message}\n\n`;
+      logEl.textContent += line;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = cls || '';
+    }
+
+    function setConnectedState(connected) {
+      document.getElementById('btnConnect').disabled = connected;
+      document.getElementById('btnDisconnect').disabled = !connected;
+      document.getElementById('btnJoin').disabled = !connected;
+      document.getElementById('btnPing').disabled = !connected;
+      document.getElementById('btnSendNotif').disabled = !connected;
+      document.getElementById('btnShareMedia').disabled = !connected;
+    }
+
+    async function connect() {
+      const hubUrl = document.getElementById('hubUrl').value.trim();
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl)
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+      connection.on('ReceiveNotification', (payload) => {
+        log('ReceiveNotification', payload);
+      });
+
+      connection.on('UserOnline', (payload) => log('UserOnline', payload));
+      connection.on('UserOffline', (payload) => log('UserOffline', payload));
+      connection.on('Pong', (payload) => log('Pong', payload));
+      connection.on('ReceiveBroadcast', (payload) => log('ReceiveBroadcast', payload));
+
+      connection.onreconnecting(() => setStatus('Reconnecting...', ''));
+      connection.onreconnected(() => setStatus('Connected', 'connected'));
+      connection.onclose(() => {
+        setStatus('Disconnected', '');
+        setConnectedState(false);
+        log('Connection closed');
+      });
+
+      try {
+        await connection.start();
+        setStatus('Connected', 'connected');
+        setConnectedState(true);
+        log('Connected to hub', { hubUrl });
+      } catch (err) {
+        setStatus('Error', 'error');
+        log('Connect failed', { error: String(err) });
+      }
+    }
+
+    async function disconnect() {
+      if (connection) {
+        await connection.stop();
+        connection = null;
+      }
+      setStatus('Disconnected', '');
+      setConnectedState(false);
+    }
+
+    document.getElementById('btnConnect').onclick = connect;
+    document.getElementById('btnDisconnect').onclick = disconnect;
+    document.getElementById('btnClear').onclick = () => { logEl.textContent = ''; };
+
+    document.getElementById('btnJoin').onclick = async () => {
+      const userId = document.getElementById('userId').value.trim();
+      try {
+        await connection.invoke('JoinUserGroup', userId);
+        log('Invoked JoinUserGroup', { userId });
+      } catch (err) {
+        log('JoinUserGroup failed', { error: String(err) });
+      }
+    };
+
+    document.getElementById('btnPing').onclick = async () => {
+      try {
+        await connection.invoke('Ping');
+      } catch (err) {
+        log('Ping failed', { error: String(err) });
+      }
+    };
+
+    document.getElementById('btnSendNotif').onclick = async () => {
+      const base = apiBaseInput.value.replace(/\/$/, '');
+      const userId = document.getElementById('userId').value.trim();
+      const type = document.getElementById('notifType').value.trim();
+      const payloadJson = document.getElementById('payloadJson').value;
+
+      try {
+        const res = await fetch(`${base}/api/notifications/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, type, payloadJson })
+        });
+        const body = await res.json();
+        log(`REST create notification (${res.status})`, body);
+      } catch (err) {
+        log('REST create notification failed', { error: String(err) });
+      }
+    };
+
+    document.getElementById('btnShareMedia').onclick = async () => {
+      const base = apiBaseInput.value.replace(/\/$/, '');
+      const mediaId = document.getElementById('mediaId').value.trim();
+      const senderId = document.getElementById('senderId').value.trim();
+      const receiverId = document.getElementById('userId').value.trim();
+
+      try {
+        const res = await fetch(`${base}/api/playlists/share/media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mediaId, senderId, receiverId })
+        });
+        const body = await res.json();
+        log(`REST share media (${res.status})`, body);
+      } catch (err) {
+        log('REST share media failed', { error: String(err) });
+      }
+    };
+  </script>
+</body>
+</html>
