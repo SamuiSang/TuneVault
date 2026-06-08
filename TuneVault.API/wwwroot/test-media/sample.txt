@@ -1,0 +1,2 @@
+TuneVault phase 7 test media file.
+Replace this path in seed-phase7-test.sql if you use a real mp3/mp4 for streaming tests.
