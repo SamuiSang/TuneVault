@@ -1,6 +1,6 @@
 using MediatR;
-using TuneVault.Application.Common.Interfaces.Repositories;
-
+using TuneVault.Application.Common.Interfaces;
+using TuneVault.Domain.Entities;
 namespace TuneVault.Application.Features.Playlist.Commands.UpdatePlaylist;
 
 public class UpdatePlaylistCommandHandler
@@ -18,7 +18,7 @@ public class UpdatePlaylistCommandHandler
         UpdatePlaylistCommand request,
         CancellationToken cancellationToken)
     {
-        var playlist = new Playlists
+        var playlist = new TuneVault.Domain.Entities.Playlist
         {
             Id = request.PlaylistId,
             Name = request.Name,

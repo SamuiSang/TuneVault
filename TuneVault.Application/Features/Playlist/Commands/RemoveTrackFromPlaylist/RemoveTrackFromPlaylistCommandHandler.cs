@@ -1,5 +1,5 @@
 using MediatR;
-using TuneVault.Application.Common.Interfaces.Repositories;
+using TuneVault.Application.Common.Interfaces;
 
 namespace TuneVault.Application.Features.Playlist.Commands.RemoveTrackFromPlaylist;
 
