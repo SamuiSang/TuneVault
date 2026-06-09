@@ -1,4 +1,6 @@
-﻿public class Playlist
+﻿namespace TuneVault.Domain.Entities;
+
+public class Playlist
 {
     // Khóa chính (PK)
     public required Guid Id { get; set; }
