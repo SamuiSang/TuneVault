@@ -1,6 +1,6 @@
 using Dapper;
 using System.Data;
-using TuneVault.Application.Common.Interfaces.Repositories;
+using TuneVault.Application.Common.Interfaces;
 using TuneVault.Application.Features.Playlist.DTOs;
 
 namespace TuneVault.Infrastructure.Repositories;
@@ -14,7 +14,7 @@ public class PlaylistRepository : IPlaylistRepository
         _db = db;
     }
 
-    public async Task<Guid> CreateAsync(Playlists playlist)
+    public async Task<Guid> CreateAsync(TuneVault.Domain.Entities.Playlist playlist)
     {
         const string sql = @"
             INSERT INTO Playlist
@@ -39,7 +39,7 @@ public class PlaylistRepository : IPlaylistRepository
         return playlist.Id;
     }
 
-    public async Task UpdateAsync(Playlists playlist)
+    public async Task UpdateAsync(TuneVault.Domain.Entities.Playlist playlist)
     {
         const string sql = @"
             UPDATE Playlist
@@ -107,7 +107,7 @@ public class PlaylistRepository : IPlaylistRepository
     }
 
     public async Task<IEnumerable<PlaylistDto>>
-        GetUserPlaylistsAsync(string userId)
+        GetUserPlaylistAsync(string userId)
     {
         const string sql = @"
             SELECT
@@ -135,7 +135,7 @@ public class PlaylistRepository : IPlaylistRepository
     public async Task<PlaylistDetailDto?>
         GetPlaylistDetailAsync(Guid playlistId)
     {
-        const string playlistSql = @"
+        const string Playlistql = @"
             SELECT
                 Id,
                 Name,
@@ -145,7 +145,7 @@ public class PlaylistRepository : IPlaylistRepository
             WHERE Id = @PlaylistId;";
 
         var playlist = await _db.QueryFirstOrDefaultAsync<PlaylistDetailDto>(
-            playlistSql,
+            Playlistql,
             new { PlaylistId = playlistId });
 
         if (playlist == null)

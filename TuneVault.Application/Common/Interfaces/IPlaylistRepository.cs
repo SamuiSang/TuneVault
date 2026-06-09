@@ -1,6 +1,7 @@
 using TuneVault.Application.Features.Playlist.DTOs;
+using TuneVault.Domain.Entities;
 
-namespace TuneVault.Application.Common.Interfaces.Repositories;
+namespace TuneVault.Application.Common.Interfaces;
 
 public interface IPlaylistRepository
 {

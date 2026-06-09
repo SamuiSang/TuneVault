@@ -1,5 +1,5 @@
 using MediatR;
-using TuneVault.Application.Common.Interfaces.Repositories;
+using TuneVault.Application.Common.Interfaces;
 using TuneVault.Application.Features.Playlist.DTOs;
 
 namespace TuneVault.Application.Features.Playlist.Queries.GetPlaylistDetail;
