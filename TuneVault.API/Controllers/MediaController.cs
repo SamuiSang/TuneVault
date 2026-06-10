@@ -34,7 +34,20 @@ namespace TuneVault.API.Controllers
         {
             if (request.File == null || request.File.Length == 0)
             {
-                return BadRequest(new { success = false, message = "Bạn chưa chọn file nhạc/video!" });
+                // 1. Kiểm tra định dạng (Chỉ cho phép mp3, wav, mp4)
+                var allowedExtensions = new[] { ".mp3", ".wav", ".mp4" };
+                var extension = Path.GetExtension(request.File.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new { success = false, message = "Định dạng không hợp lệ! Chỉ hỗ trợ .mp3, .wav, .mp4" });
+                }
+
+                // 2. Kiểm tra dung lượng (Giới hạn 50MB)
+                var maxFileSize = 50 * 1024 * 1024; // 50MB tính bằng byte
+                if (request.File.Length > maxFileSize)
+                {
+                    return BadRequest(new { success = false, message = "Kích thước file quá lớn! Vui lòng upload file dưới 50MB." });
+                }
             }
 
             using var fileStream = request.File.OpenReadStream();
