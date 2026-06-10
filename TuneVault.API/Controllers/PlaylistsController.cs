@@ -54,4 +54,13 @@ public class PlaylistsController : ControllerBase
                 new BaseResponse<string>(message: "Lỗi khi chia sẻ media!"));
         }
     }
+
+    [HttpGet("shared-with-me/{userId}")]
+    public async Task<IActionResult> GetSharedWithMe(string userId)
+    {
+        var query = new Application.Features.Playlist.Queries.GetSharedMedia.GetSharedWithMeQuery(userId);
+        var result = await _mediator.Send(query);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
 }
