@@ -45,6 +45,18 @@ builder.Services.AddInfrastructureServices(builder.Configuration); // Dapper và
 // ---> PIPELINE MEDIATR <---
 builder.Services.AddApplicationServices();
 
+// ---> CẤU HÌNH CORS <---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Đúng địa chỉ của React (không có dấu gạch chéo ở cuối)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Cần thiết để sau này chạy được SignalR (Thông báo)
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -59,6 +71,9 @@ if (app.Environment.IsDevelopment())
 //app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+
+// ---> THÊM ĐÚNG DÒNG NÀY VÀO ĐÂY <---
+app.UseCors("AllowFrontend");
 
 // ---> MIDDLEWARE BẢO MẬT <---
 app.UseAuthentication(); // Hỏi "Bạn là ai?"

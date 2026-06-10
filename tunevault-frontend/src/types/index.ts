@@ -94,3 +94,26 @@ export interface MediaArtist {
   artistId: string;
 }
 // ---> Kết thúc bảng trung gian <---
+
+// --->  AXIOS VÀ AUTH CONTEXT  <---
+// Định nghĩa form gửi lên khi Login khớp với LoginCommand.cs
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+// Định nghĩa form gửi lên khi Register
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  userName: string;
+}
+
+// Khớp hoàn toàn với BaseResponse<T> trong BaseResponse.cs
+export interface BaseResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  errors: string[] | null;
+}
+// ---> END: AXIOS VÀ AUTH CONTEXT  <---
