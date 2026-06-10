@@ -18,6 +18,12 @@ namespace TuneVault.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             services.AddScoped<IPlaylistRepository, PlaylistRepository>();
             services.AddScoped<ISearchRepository, SearchRepository>();
+            
+            // Đăng ký các Repositories cho Interactions & History
+            services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            services.AddScoped<IPlayHistoryRepository, PlayHistoryRepository>();
+            services.AddScoped<IFollowRepository, FollowRepository>();
+            
             // Đăng ký IDbConnection với vòng đời Transient cho Dapper
             services.AddTransient<IDbConnection>((sp) => new SqlConnection(connectionString));
 
