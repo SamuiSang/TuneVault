@@ -4,7 +4,14 @@ namespace TuneVault.Application.Features.Playlist.Commands.RemoveTrackFromPlayli
 
 public class RemoveTrackFromPlaylistCommand : IRequest<bool>
 {
-    
+    private Guid mediaId;
+
+    public RemoveTrackFromPlaylistCommand(Guid playlistId, Guid mediaId)
+    {
+        PlaylistId = playlistId;
+        this.mediaId = mediaId;
+    }
+
     public Guid PlaylistId { get; set; }
 
     
