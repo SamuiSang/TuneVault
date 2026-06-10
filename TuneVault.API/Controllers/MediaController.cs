@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IO; // Thêm thư viện này để thao tác đường dẫn (Path, File)
+using System.Linq;
 using System.Threading.Tasks;
 using TuneVault.Application.Features.Media.Commands;
 using TuneVault.Application.Features.Media.Queries;
@@ -74,6 +76,27 @@ namespace TuneVault.API.Controllers
             var query = new GetMediaListQuery();
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+
+        // ---> THÊM CODE CỦA HIẾU VÀO ĐÂY (Hỗ trợ Streaming và Range Header) <---
+        [HttpGet("{id}/stream")]
+        public async Task<IActionResult> StreamMedia(Guid id, [FromServices] TuneVault.Application.Common.Interfaces.Repositories.IMediaRepository mediaRepository)
+        {
+            // Gọi hàm từ repository mà team đã định nghĩa sẵn
+            var filePath = await mediaRepository.GetMediaFilePathAsync(id);
+            if (string.IsNullOrEmpty(filePath))
+                return NotFound(new { success = false, message = "Không tìm thấy file media." });
+
+            // Cắt bỏ dấu '/' ở đầu để nối chuỗi đường dẫn vật lý an toàn (nằm trong thư mục wwwroot)
+            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
+
+            if (!System.IO.File.Exists(physicalPath))
+                return NotFound(new { success = false, message = "File vật lý không tồn tại trên server." });
+
+            var contentType = filePath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ? "video/mp4" : "audio/mpeg";
+
+            // enableRangeProcessing: true chính là chìa khóa để đạt điểm tối đa phần Streaming theo đề bài
+            return PhysicalFile(physicalPath, contentType, enableRangeProcessing: true);
         }
     }
 }
