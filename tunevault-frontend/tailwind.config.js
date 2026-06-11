@@ -1,3 +1,4 @@
+// ---> ĐÂY LÀ PHẦN CONFIG TAILWIND (MÀU CHUẨN SPOTIFY) <---
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,15 +9,16 @@ export default {
     extend: {
       colors: {
         spotify: {
-          base: '#121212',
-          elevated: '#242424',
-          highlight: '#1a1a1a',
-          primary: '#1DB954',
-          text: '#FFFFFF',
-          subtext: '#B3B3B3'
+          base: '#121212',      // Nền chính
+          elevated: '#242424',  // Nền các box nổi
+          highlight: '#2a2a2a', // Màu khi hover
+          primary: '#1DB954',   // Xanh Spotify
+          text: '#FFFFFF',      // Text chính
+          subtext: '#B3B3B3'    // Text phụ
         }
       }
     },
   },
   plugins: [],
 }
+// ---> END: ĐÂY LÀ PHẦN CONFIG TAILWIND (MÀU CHUẨN SPOTIFY) <---

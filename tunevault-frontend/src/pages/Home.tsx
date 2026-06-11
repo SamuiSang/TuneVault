@@ -1,38 +1,38 @@
 import { mockMediaItems } from '../utils/mockData';
 import { FaPlay } from 'react-icons/fa';
-// Thêm import usePlayer
 import { usePlayer } from '../contexts/PlayerContext';
 
+// ---> ĐÂY LÀ PHẦN TRANG CHỦ HOME (LỊCH SỬ & TƯƠNG TÁC) <---
 const Home = () => {
-  const { playTrack } = usePlayer(); // Lấy hàm playTrack từ context
+  const { playTrack } = usePlayer();
 
   return (
     <div className="text-spotify-text pb-24">
-      {/* Khối Gợi Ý */}
       <section className="mb-8">
         <h2 className="text-2xl font-bold mb-6 hover:underline cursor-pointer">
           Dành Cho Bạn
         </h2>
         
-        {/* Lưới hiển thị danh sách bài hát */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {/* ---> ĐÂY LÀ PHẦN LƯỚI BÀI HÁT (ĐÃ LÀM TO ITEM) <--- */}
+        {/* Dùng auto-fill và minmax(200px, 1fr) để item luôn to rõ và tự động xuống hàng */}
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-6">
           {mockMediaItems.map((item) => (
             <div 
               key={item.id} 
-              onClick={() => playTrack(item)} // Gọi hàm khi click vào thẻ
+              onClick={() => playTrack(item)}
               className="bg-spotify-base p-4 rounded-md hover:bg-spotify-highlight transition-all duration-300 group cursor-pointer"
             >
               {/* Vùng chứa ảnh bìa */}
               <div className="relative mb-4">
+                {/* Thêm bg-spotify-elevated để lấp chỗ trống nếu ảnh bị lỗi/trong suốt, object-center để canh giữa ảnh */}
                 <img 
                   src={item.thumbnailUrl} 
                   alt={item.title} 
-                  className="w-full aspect-square object-cover rounded-md shadow-lg"
+                  className="w-full aspect-square object-cover object-center rounded-md shadow-md bg-spotify-elevated"
                 />
                 
-                {/* Nút Play ẩn/hiện khi hover */}
-                <button className="absolute bottom-2 right-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-xl hover:scale-105 hover:bg-green-400 text-black">
-                  <FaPlay className="ml-1 text-xl" />
+                <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-[0_8px_8px_rgba(0,0,0,0.3)] hover:scale-105 text-black z-10">
+                  <FaPlay className="ml-1 text-lg" />
                 </button>
               </div>
 
@@ -46,11 +46,11 @@ const Home = () => {
             </div>
           ))}
         </div>
+        {/* ---> END: ĐÂY LÀ PHẦN LƯỚI BÀI HÁT (ĐÃ LÀM TO ITEM) <--- */}
       </section>
-
-      {/* Có thể copy thêm các khối <section> khác như "Nghe Gần Đây", "Playlist Nổi Bật" */}
     </div>
   );
 };
 
 export default Home;
+// ---> END: ĐÂY LÀ PHẦN TRANG CHỦ HOME (LỊCH SỬ & TƯƠNG TÁC) <---
