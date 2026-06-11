@@ -1,30 +1,48 @@
-//gộp PlayerBar + SideBar + TopBar
 import { Outlet } from 'react-router-dom';
 import Sidebar from './SideBar';
 import Topbar from './TopBar';
 import PlayerBar from './PlayerBar';
 
+// ---> ĐÂY LÀ PHẦN MAIN LAYOUT (KIẾN TRÚC ISLAND CỦA SPOTIFY) <---
 const MainLayout = () => {
   return (
-    <div className="h-screen w-full flex flex-col bg-spotify-base overflow-hidden font-sans">
-      {/* Vùng phía trên PlayerBar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Thanh bên trái */}
-        <Sidebar />
+    // Nền gốc phải là màu đen tuyệt đối, có khoảng cách gap-2
+    <div className="h-screen w-full flex flex-col bg-black overflow-hidden font-sans text-spotify-text p-2 gap-2">
+      
+      {/* Vùng Content chính */}
+      <div className="flex-1 flex overflow-hidden gap-2">
+        
+        {/* Left Sidebar - Chiếm width cố định */}
+        <div className="w-[320px] flex-shrink-0 flex flex-col gap-2 overflow-hidden">
+          <Sidebar />
+        </div>
 
-        {/* Vùng nội dung trung tâm */}
-        <main className="flex-1 flex flex-col bg-spotify-base relative overflow-y-auto">
+        {/* Center Main Content - Được bo góc và đổi màu xám */}
+        <main className="flex-1 flex flex-col bg-spotify-base rounded-lg relative overflow-y-auto custom-scrollbar">
           <Topbar />
-          
-          {/* Nội dung các trang (Home, Search, Library...) sẽ được render tại <Outlet /> */}
           <div className="flex-1 p-6">
             <Outlet />
           </div>
         </main>
+
+        {/* ---> ĐÂY LÀ PHẦN RIGHT PANEL (CHI TIẾT BÀI HÁT) <--- */}
+        {/* Yêu cầu bắt buộc của đề bài: Hiển thị chi tiết nghệ sĩ/bài hát */}
+        <aside className="w-[300px] flex-shrink-0 bg-spotify-base rounded-lg p-4 overflow-y-auto hidden xl:block custom-scrollbar">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold">Đang phát</h3>
+            <button className="text-spotify-subtext hover:text-white">...</button>
+          </div>
+          
+          <div className="text-center text-spotify-subtext text-sm mt-10">
+            Chi tiết Bài hát & Nghệ sĩ sẽ hiển thị ở đây khi bạn chọn bài...
+          </div>
+        </aside>
+        {/* ---> END: ĐÂY LÀ PHẦN RIGHT PANEL (CHI TIẾT BÀI HÁT) <--- */}
+
       </div>
 
-      {/* Thanh phát nhạc cố định dưới cùng */}
-      <div className="w-full h-24 shrink-0">
+      {/* Bottom Player Bar - Nằm sát dưới cùng và được bo góc */}
+      <div className="w-full h-[90px] shrink-0 bg-black rounded-lg">
         <PlayerBar />
       </div>
     </div>
@@ -32,3 +50,4 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
+// ---> END: ĐÂY LÀ PHẦN MAIN LAYOUT (KIẾN TRÚC ISLAND CỦA SPOTIFY) <---

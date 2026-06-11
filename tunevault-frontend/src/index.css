@@ -1,7 +1,96 @@
+/* ---> ĐÂY LÀ PHẦN CSS GLOBAL VÀ THANH CUỘN <--- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply bg-spotify-base text-spotify-text m-0 p-0 font-sans;
+  @apply bg-black text-spotify-text m-0 p-0 font-sans overflow-hidden;
+}
+
+/* ---> OVERRIDE CSS CHO AUDIO PLAYER (Sửa khối trắng mù mắt) <--- */
+.rhap_container {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.rhap_time {
+  color: #B3B3B3 !important; /* text-spotify-subtext */
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+.rhap_progress-bar {
+  background-color: #4d4d4d !important;
+}
+
+.rhap_progress-filled {
+  background-color: #FFFFFF !important;
+}
+
+.rhap_progress-bar-show-download {
+  background-color: #2a2a2a !important;
+}
+
+.rhap_progress-indicator {
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  top: -4px !important;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Chỉ hiện cục tròn khi hover vào thanh tiến trình */
+.rhap_progress-container:hover .rhap_progress-indicator {
+  opacity: 1;
+}
+
+.rhap_progress-container:hover .rhap_progress-filled {
+  background-color: #1DB954 !important; /* Xanh Spotify */
+}
+
+/* Nút Play/Pause */
+.rhap_main-controls button {
+  color: #FFFFFF !important;
+}
+.rhap_play-pause-button {
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+/* ---> END: OVERRIDE CSS CHO AUDIO PLAYER <--- */
+
+/* ---> CUSTOM SCROLLBAR GIỐNG SPOTIFY <--- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  border: 3px solid #121212; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Ẩn scrollbar nhưng vẫn cho cuộn (dành cho sidebar ngắn) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* ---> END: CUSTOM SCROLLBAR GIỐNG SPOTIFY <--- */
+/* ---> END: ĐÂY LÀ PHẦN CSS GLOBAL VÀ THANH CUỘN <--- */
+
+/* ÉP RENDER ẢNH NÉT HƠN */
+img {
+  image-rendering: -webkit-optimize-contrast;
 }
