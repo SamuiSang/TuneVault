@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout'; // Sửa lại đường dẫn nếu cần
 import { PlayerProvider } from './contexts/PlayerContext'; // trước khi có api
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Library from './pages/Library';
@@ -31,6 +33,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
+      <ToastContainer position="bottom-right" theme="dark" autoClose={3000} />
     </PlayerProvider>
   );
 }

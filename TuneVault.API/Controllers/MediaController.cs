@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO; // Thêm thư viện này để thao tác đường dẫn (Path, File)
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TuneVault.Application.Features.Media.Commands;
@@ -20,6 +20,15 @@ namespace TuneVault.API.Controllers
         public required IFormFile File { get; set; }
     }
 
+    // Class hứng dữ liệu từ Frontend gửi lên cho API Share
+    public class ShareMediaApiRequest
+    {
+        public required string SenderId { get; set; }
+        public required string ReceiverId { get; set; }
+        public Guid? MediaItemId { get; set; }
+        public Guid? PlaylistId { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class MediaController : ControllerBase
@@ -34,22 +43,25 @@ namespace TuneVault.API.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> UploadMedia([FromForm] UploadMediaRequest request)
         {
+            // Đã sửa lại logic check File bị null
             if (request.File == null || request.File.Length == 0)
             {
-                // 1. Kiểm tra định dạng (Chỉ cho phép mp3, wav, mp4)
-                var allowedExtensions = new[] { ".mp3", ".wav", ".mp4" };
-                var extension = Path.GetExtension(request.File.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(extension))
-                {
-                    return BadRequest(new { success = false, message = "Định dạng không hợp lệ! Chỉ hỗ trợ .mp3, .wav, .mp4" });
-                }
+                return BadRequest(new { success = false, message = "Vui lòng chọn file để upload!" });
+            }
 
-                // 2. Kiểm tra dung lượng (Giới hạn 50MB)
-                var maxFileSize = 50 * 1024 * 1024; // 50MB tính bằng byte
-                if (request.File.Length > maxFileSize)
-                {
-                    return BadRequest(new { success = false, message = "Kích thước file quá lớn! Vui lòng upload file dưới 50MB." });
-                }
+            // 1. Kiểm tra định dạng (Chỉ cho phép mp3, wav, mp4)
+            var allowedExtensions = new[] { ".mp3", ".wav", ".mp4" };
+            var extension = Path.GetExtension(request.File.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new { success = false, message = "Định dạng không hợp lệ! Chỉ hỗ trợ .mp3, .wav, .mp4" });
+            }
+
+            // 2. Kiểm tra dung lượng (Giới hạn 50MB)
+            var maxFileSize = 50 * 1024 * 1024; // 50MB
+            if (request.File.Length > maxFileSize)
+            {
+                return BadRequest(new { success = false, message = "Kích thước file quá lớn! Vui lòng upload file dưới 50MB." });
             }
 
             using var fileStream = request.File.OpenReadStream();
@@ -70,6 +82,23 @@ namespace TuneVault.API.Controllers
             return Ok(new { success = true, data = resultId, message = "Upload file thành công!" });
         }
 
+        // ---> ĐÂY LÀ ENDPOINT SHARE MEDIA VỪA LÀM <---
+        [HttpPost("share")]
+        public async Task<IActionResult> ShareMedia([FromBody] ShareMediaApiRequest request)
+        {
+            var command = new ShareMediaCommand
+            {
+                SenderId = request.SenderId,
+                ReceiverId = request.ReceiverId,
+                MediaItemId = request.MediaItemId,
+                PlaylistId = request.PlaylistId
+            };
+
+            var resultId = await _mediator.Send(command);
+
+            return Ok(new { success = true, data = resultId, message = "Chia sẻ thành công, đã lưu vào hộp thư!" });
+        }
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllMedia()
         {
@@ -78,16 +107,14 @@ namespace TuneVault.API.Controllers
             return Ok(result);
         }
 
-        // ---> THÊM CODE CỦA HIẾU VÀO ĐÂY (Hỗ trợ Streaming và Range Header) <---
+        // Hỗ trợ Streaming và Range Header của Hiếu
         [HttpGet("{id}/stream")]
         public async Task<IActionResult> StreamMedia(Guid id, [FromServices] TuneVault.Application.Common.Interfaces.Repositories.IMediaRepository mediaRepository)
         {
-            // Gọi hàm từ repository mà team đã định nghĩa sẵn
             var filePath = await mediaRepository.GetMediaFilePathAsync(id);
             if (string.IsNullOrEmpty(filePath))
                 return NotFound(new { success = false, message = "Không tìm thấy file media." });
 
-            // Cắt bỏ dấu '/' ở đầu để nối chuỗi đường dẫn vật lý an toàn (nằm trong thư mục wwwroot)
             var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
 
             if (!System.IO.File.Exists(physicalPath))
@@ -95,7 +122,6 @@ namespace TuneVault.API.Controllers
 
             var contentType = filePath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ? "video/mp4" : "audio/mpeg";
 
-            // enableRangeProcessing: true chính là chìa khóa để đạt điểm tối đa phần Streaming theo đề bài
             return PhysicalFile(physicalPath, contentType, enableRangeProcessing: true);
         }
     }

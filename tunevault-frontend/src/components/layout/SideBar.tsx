@@ -1,7 +1,13 @@
+
+import { Link } from 'react-router-dom';
+import { FiHome, FiSearch, FiInbox } from 'react-icons/fi'; // Thêm FiInbox ở đây
+import { BiLibrary } from 'react-icons/bi';
+
 import { Link, useLocation } from 'react-router-dom';
 import { FiHome, FiSearch, FiPlus } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
+
 
 // ---> ĐÂY LÀ PHẦN SIDEBAR TRÁI (CHIA 2 BOX) <---
 const Sidebar = () => {
@@ -15,6 +21,19 @@ const Sidebar = () => {
         <Link to="/" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/')}`}>
           <FiHome className="text-[28px]" /> Trang chủ
         </Link>
+
+        <Link to="/library" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
+          <BiLibrary className="text-2xl" />
+          Thư viện
+        </Link>
+        
+        {/* chiến mới thêm */}
+        <Link to="/share-inbox" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
+          <FiInbox className="text-2xl" />
+          Hộp thư
+        </Link>
+      </nav>
+
         <Link to="/search" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/search')}`}>
           <FiSearch className="text-[28px]" /> Tìm kiếm
         </Link>
@@ -46,6 +65,7 @@ const Sidebar = () => {
               <span className="text-sm text-spotify-subtext">Danh sách phát • 168 bài hát</span>
             </div>
           </div>
+
 
           {/* Danh sách Playlist giả định */}
           <ul className="flex flex-col">
