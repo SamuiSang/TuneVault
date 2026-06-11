@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FiHome, FiSearch } from 'react-icons/fi';
-import { BiLibrary } from 'react-icons/bi'; // Thêm dòng này để lấy icon Library
+import { FiHome, FiSearch, FiInbox } from 'react-icons/fi'; // Thêm FiInbox ở đây
+import { BiLibrary } from 'react-icons/bi';
 
 const Sidebar = () => {
   return (
@@ -21,8 +21,14 @@ const Sidebar = () => {
           Tìm kiếm
         </Link>
         <Link to="/library" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
-          <BiLibrary className="text-2xl" /> {/* Cập nhật icon ở đây */}
+          <BiLibrary className="text-2xl" />
           Thư viện
+        </Link>
+        
+        {/* chiến mới thêm */}
+        <Link to="/share-inbox" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
+          <FiInbox className="text-2xl" />
+          Hộp thư
         </Link>
       </nav>
 
