@@ -1,5 +1,8 @@
 using System.Data;
+<<<<<<< HEAD
 using System.Text.Json;
+=======
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
 using Dapper;
 using TuneVault.Application.Common.Interfaces.Repositories;
 
@@ -17,6 +20,7 @@ public class MediaShareRepository : IMediaShareRepository
     public async Task<Guid> CreateMediaShareAsync(CreateMediaShareRequest request, CancellationToken cancellationToken = default)
     {
         var shareId = Guid.NewGuid();
+<<<<<<< HEAD
         var notificationId = Guid.NewGuid();
 
         // Mở kết nối trước khi bắt đầu Transaction
@@ -80,3 +84,23 @@ public class MediaShareRepository : IMediaShareRepository
         }
     }
 }
+=======
+
+        const string query = @"
+            INSERT INTO MediaShare (Id, SharedAt, SenderId, ReceiverId, MediaItemId, PlaylistId)
+            VALUES (@Id, @SharedAt, @SenderId, @ReceiverId, @MediaItemId, @PlaylistId)";
+
+        await _dbConnection.ExecuteAsync(query, new
+        {
+            Id = shareId,
+            SharedAt = DateTime.UtcNow,
+            request.SenderId,
+            request.ReceiverId,
+            request.MediaItemId,
+            request.PlaylistId
+        });
+
+        return shareId;
+    }
+}
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93

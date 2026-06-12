@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @TuneVault_API_HostAddress = http://localhost:5093
 
 GET {{TuneVault_API_HostAddress}}/weatherforecast/
@@ -5,19 +6,110 @@ Accept: application/json
 
 ### Kịch bản 1: Test lỗi Validation (Gửi tên quá ngắn)
 POST {{TuneVault_API_HostAddress}}/api/test/pipeline
+=======
+@TuneVault.API_HostAddress = http://localhost:5093
+@testUserId = U002
+@testSenderId = U001
+@testMediaId = 11111111-1111-1111-1111-111111111111
+@notificationId = {{createNotification.response.body.data}}
+
+###############################################
+# GIAI ĐOẠN 7 - REST API TESTS
+###############################################
+
+### 7.1.1 Media controller health check
+GET {{TuneVault.API_HostAddress}}/api/media/health
+Accept: application/json
+
+### 7.1.2 Lấy metadata media (thay @testMediaId bằng ID thật trong DB)
+GET {{TuneVault.API_HostAddress}}/api/media/{{testMediaId}}/metadata
+Accept: application/json
+
+### 7.1.3 Lấy thông tin media
+GET {{TuneVault.API_HostAddress}}/api/media/{{testMediaId}}/info
+Accept: application/json
+
+### 7.1.4 Stream media (full file)
+GET {{TuneVault.API_HostAddress}}/api/media/{{testMediaId}}/stream
+Accept: */*
+
+### 7.1.5 Stream media với Range header (206 Partial Content)
+GET {{TuneVault.API_HostAddress}}/api/media/{{testMediaId}}/stream
+Range: bytes=0-1023
+Accept: */*
+
+### 7.1.6 Tạo thông báo mới
+# @name createNotification
+POST {{TuneVault.API_HostAddress}}/api/notifications/create
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
 Content-Type: application/json
 
 {
-  "name": "a"
+  "userId": "{{testUserId}}",
+  "type": "TestNotification",
+  "payloadJson": "{\"message\":\"Hello from REST test\",\"source\":\"TuneVault.API.http\"}"
 }
 
+<<<<<<< HEAD
 ### Kịch bản 2: Test thành công
 POST {{TuneVault_API_HostAddress}}/api/test/pipeline
+=======
+### 7.1.7 Lấy danh sách thông báo của user
+GET {{TuneVault.API_HostAddress}}/api/notifications/user/{{testUserId}}
+Accept: application/json
+
+### 7.1.8 Lấy thông báo chưa đọc
+GET {{TuneVault.API_HostAddress}}/api/notifications/user/{{testUserId}}/unread
+Accept: application/json
+
+### 7.1.9 Đánh dấu đã đọc (chạy sau 7.1.6, dùng ID trả về)
+PUT {{TuneVault.API_HostAddress}}/api/notifications/{{notificationId}}/read
+Accept: application/json
+
+### 7.1.10 Chia sẻ media (trigger MediaShare + notification)
+POST {{TuneVault.API_HostAddress}}/api/playlists/share/media
+Content-Type: application/json
+
+{
+  "mediaId": "{{testMediaId}}",
+  "senderId": "{{testSenderId}}",
+  "receiverId": "{{testUserId}}"
+}
+
+### 7.1.11 Validation - tạo notification payload JSON không hợp lệ
+POST {{TuneVault.API_HostAddress}}/api/notifications/create
+Content-Type: application/json
+
+{
+  "userId": "{{testUserId}}",
+  "type": "Bad",
+  "payloadJson": "not-json"
+}
+
+### 7.1.12 Validation - share media với chính mình
+POST {{TuneVault.API_HostAddress}}/api/playlists/share/media
+Content-Type: application/json
+
+{
+  "mediaId": "{{testMediaId}}",
+  "senderId": "{{testUserId}}",
+  "receiverId": "{{testUserId}}"
+}
+
+###############################################
+# SignalR test page (mở browser khi API đang chạy):
+# http://localhost:5093/signalr-test.html
+###############################################
+
+### Legacy pipeline tests
+POST {{TuneVault.API_HostAddress}}/api/test/pipeline
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
 Content-Type: application/json
 
 {
   "name": "Sang Nguyễn"
 }
+<<<<<<< HEAD
 
 ### Kịch bản 3: Đăng ký tài khoản (Register)
 POST {{TuneVault_API_HostAddress}}/api/auth/register
@@ -37,3 +129,5 @@ Content-Type: application/json
   "email": "admin@tunevault.com",
   "password": "Password123"
 }
+=======
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93

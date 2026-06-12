@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using Dapper;
 using System.Data;
 using TuneVault.Application.Common.Interfaces.Repositories;
@@ -94,5 +95,22 @@ public class SearchRepository : ISearchRepository
         return await _db.QueryAsync<PlaylistSearchDto>(
             sql,
             new { Keyword = keyword });
+=======
+using System.Data;
+using TuneVault.Application.Common.Interfaces.Repositories;
+
+namespace TuneVault.Infrastructure.Repositories;
+
+/// <summary>
+/// Repository cho tìm kiếm media/artist/playlist (sẽ triển khai sau)
+/// </summary>
+public class SearchRepository : ISearchRepository
+{
+    private readonly IDbConnection _dbConnection;
+
+    public SearchRepository(IDbConnection dbConnection)
+    {
+        _dbConnection = dbConnection;
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
     }
 }

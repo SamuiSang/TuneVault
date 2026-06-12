@@ -1,8 +1,14 @@
 using TuneVault.API.Middlewares;
 using TuneVault.Application;
 using TuneVault.Infrastructure;
+<<<<<<< HEAD
 using TuneVault.Infrastructure.Identity;
 using TuneVault.Infrastructure.SignalR;
+=======
+using TuneVault.Infrastructure.SignalR;
+
+var builder = WebApplication.CreateBuilder(args);
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
 
 using TuneVault.Infrastructure.Repositories; 
 using TuneVault.Infrastructure.Services;
@@ -60,6 +66,9 @@ builder.Services.AddIdentityCore<AppUser>(options => {
 .AddDefaultTokenProviders();
 // (Ghi chú: Sau khi tạo xong file DapperUserStore, chúng ta sẽ thêm lệnh đăng ký nó vào ngay dưới dòng này)
 
+// ---> SIGNALR SERVICE <---
+builder.Services.AddSignalR();
+
 // ---> KÍCH HOẠT KẾT NỐI DATABASE VÀ REPOSITORY <---
 builder.Services.AddInfrastructureServices(builder.Configuration); // Dapper và các Repo
 
@@ -99,6 +108,12 @@ app.UseCors("AllowFrontend");
 // ---> MIDDLEWARE BẢO MẬT <---
 app.UseAuthentication(); // Hỏi "Bạn là ai?"
 app.UseAuthorization();  // Hỏi "Bạn có quyền làm việc này không?"
+
+// ---> MAP SIGNALR HUB <---
+app.MapHub<NotificationHub>("/hubs/notifications");
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // ---> MAP SIGNALR HUB <---
 app.MapHub<NotificationHub>("/hubs/notifications");

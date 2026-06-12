@@ -11,7 +11,11 @@
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MediatR" Version="14.1.0" />
+<<<<<<< HEAD
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+=======
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+>>>>>>> 0ca8b5a94c779c737b1f46a2b2f933bab2e5ee93
   </ItemGroup>
 
   <ItemGroup>
