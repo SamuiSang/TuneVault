@@ -1,13 +1,7 @@
-
-import { Link } from 'react-router-dom';
-import { FiHome, FiSearch, FiInbox } from 'react-icons/fi'; // Thêm FiInbox ở đây
-import { BiLibrary } from 'react-icons/bi';
-
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiSearch, FiPlus } from 'react-icons/fi';
+import { FiHome, FiSearch, FiInbox, FiPlus } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
-
 
 // ---> ĐÂY LÀ PHẦN SIDEBAR TRÁI (CHIA 2 BOX) <---
 const Sidebar = () => {
@@ -22,20 +16,19 @@ const Sidebar = () => {
           <FiHome className="text-[28px]" /> Trang chủ
         </Link>
 
+        {/* // Thay đổi của Hiếu: Sắp xếp lại vị trí Tìm kiếm và sửa lỗi đóng/mở thẻ lồng nhau */}
+        <Link to="/search" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/search')}`}>
+          <FiSearch className="text-[28px]" /> Tìm kiếm
+        </Link>
+
         <Link to="/library" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
-          <BiLibrary className="text-2xl" />
-          Thư viện
+          <BiLibrary className="text-2xl" /> Thư viện
         </Link>
         
         {/* chiến mới thêm */}
+        {/* // Thay đổi của Hiếu: Giữ lại mục Hộp thư và cấu trúc lại thẻ bao bọc hợp lệ */}
         <Link to="/share-inbox" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
-          <FiInbox className="text-2xl" />
-          Hộp thư
-        </Link>
-      </nav>
-
-        <Link to="/search" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/search')}`}>
-          <FiSearch className="text-[28px]" /> Tìm kiếm
+          <FiInbox className="text-2xl" /> Hộp thư
         </Link>
       </div>
       {/* ---> END: ĐÂY LÀ BOX 1: ĐIỀU HƯỚNG CHÍNH <--- */}
@@ -66,7 +59,6 @@ const Sidebar = () => {
             </div>
           </div>
 
-
           {/* Danh sách Playlist giả định */}
           <ul className="flex flex-col">
             {[1, 2, 3].map((item) => (
@@ -74,6 +66,7 @@ const Sidebar = () => {
                 <div className="w-12 h-12 bg-spotify-elevated rounded flex-shrink-0 flex items-center justify-center text-spotify-subtext">
                   ♪
                 </div>
+                {/* // Thay đổi của Hiếu: Sửa lỗi thẻ đóng /li sang /div ở cuối khối map này */}
                 <div className="flex flex-col overflow-hidden">
                   <span className="font-semibold text-white truncate">Playlist #{item}</span>
                   <span className="text-sm text-spotify-subtext truncate">Danh sách phát • TuneVault</span>
