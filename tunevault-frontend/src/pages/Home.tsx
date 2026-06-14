@@ -1,6 +1,6 @@
 import { mockMediaItems } from '../utils/mockData';
 import { FaPlay } from 'react-icons/fa';
-import { usePlayer } from '../contexts/PlayerContext';
+import { usePlayer } from '../hooks/usePlayer';
 
 // ---> ĐÂY LÀ PHẦN TRANG CHỦ HOME (LỊCH SỬ & TƯƠNG TÁC) <---
 const Home = () => {
