@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout'; // Sửa lại đường dẫn nếu cần
-import { PlayerProvider } from './contexts/PlayerContext'; // trước khi có api
-
+import { PlayerProvider } from './components/layout/PlayerProvider'; // Sửa lại đường dẫn nếu cần
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from './pages/Home';

@@ -27,6 +27,7 @@ const Auth = () => {
   // hoặc location thay đổi mà component vẫn đang mount.
   useEffect(() => {
     if (location.state && typeof location.state.isLogin === 'boolean') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoginView(location.state.isLogin);
       setError('');
       setSuccessMsg('');
