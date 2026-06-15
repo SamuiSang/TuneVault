@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiSearch, FiInbox, FiPlus } from 'react-icons/fi';
+import { FiHome, FiSearch, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
 
@@ -29,6 +29,10 @@ const Sidebar = () => {
         {/* // Thay đổi của Hiếu: Giữ lại mục Hộp thư và cấu trúc lại thẻ bao bọc hợp lệ */}
         <Link to="/share-inbox" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
           <FiInbox className="text-2xl" /> Hộp thư
+        </Link>
+
+        <Link to="/upload" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/upload')}`}>
+          <FiUploadCloud className="text-[28px]" /> Tải nhạc lên
         </Link>
       </div>
       {/* ---> END: ĐÂY LÀ BOX 1: ĐIỀU HƯỚNG CHÍNH <--- */}

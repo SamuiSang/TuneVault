@@ -8,6 +8,7 @@ import Search from './pages/Search';
 import Library from './pages/Library';
 import Playlist from './pages/Playlist';
 import ShareInbox from './pages/ShareInbox';
+import UploadMedia from './pages/UploadMedia';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
@@ -27,6 +28,7 @@ function App() {
             <Route path="library" element={<Library />} />
             <Route path="playlist/:id" element={<Playlist />} />
             <Route path="share-inbox" element={<ShareInbox />} />
+            <Route path="/upload" element={<UploadMedia />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
           </Route>
