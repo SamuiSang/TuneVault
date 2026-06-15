@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -159,6 +160,26 @@ public class PlaylistsController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetSharedWithMeQuery(userId),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyPlaylists(
+        CancellationToken cancellationToken)
+    {
+        var userId =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _mediator.Send(
+            new GetUserPlaylistsQuery(userId),
             cancellationToken);
 
         return Ok(result);
