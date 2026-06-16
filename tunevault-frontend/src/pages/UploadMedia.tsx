@@ -31,7 +31,7 @@ const UploadMedia = () => {
         formData.append('File', file);
 
         try {
-            const response = await fetch('https://localhost:7277/api/media/upload', {
+            const response = await fetch('http://localhost:5277/api/media/upload', {
                 method: 'POST',
                 body: formData,
             });

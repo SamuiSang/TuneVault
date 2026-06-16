@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,11 +9,29 @@ const Profile = () => {
   const [bio, setBio] = useState(user?.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Gắn API axios.put('/api/users/profile', { bio, avatarUrl }) vào đây sau
-    console.log("Dữ liệu chuẩn bị gửi đi (Mock):", { bio, avatarUrl });
-    alert("Giao diện đã bắt được data! Vui lòng chờ Backend hoàn thiện API để lưu thực tế.");
+  const handleSave = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  try {
+      // Lấy token từ localStorage ra để chứng minh danh tính với Backend
+      const token = localStorage.getItem('token'); 
+      console.log("===> Token lấy ra từ localStorage là:", token);
+      const response = await axios.put('http://localhost:5277/api/auth/profile', { 
+        bio, 
+        avatarUrl 
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      alert(response.data.message || "Cập nhật Profile thành công rồi nhé!");
+      
+    } catch (error: any) {
+      console.error("Lỗi chi tiết từ Server:", error);
+      // Hiện lỗi chi tiết từ Backend trả về nếu có
+      alert(error.response?.data?.message || error.response?.data || "Có lỗi xảy ra, không thể cập nhật Profile.");
+    }
   };
 
   // Nếu lỡ rớt vào trang này mà mất token thì báo lỗi nhẹ nhàng

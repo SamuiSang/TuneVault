@@ -7,7 +7,7 @@ const ShareInbox = () => {
     const token = localStorage.getItem('token') || '';
     
     // URL của Hub backend, bồ nhớ check lại port 5000 hay port khác nhé
-    const hubUrl = 'https://localhost:7277/hubs/notifications';
+    const hubUrl = 'http://localhost:5277/hubs/notifications';
 
     const connection = useSignalR(hubUrl, token);
     const [notifications, setNotifications] = useState<string[]>([]);

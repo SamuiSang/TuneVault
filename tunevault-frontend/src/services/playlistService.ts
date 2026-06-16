@@ -1,6 +1,6 @@
 import api from "./api";
 
-const API_URL = "https://localhost:7277/api/playlists";
+const API_URL = "http://localhost:5277/api/playlists";
 
 export interface Playlist {
   id: string;
