@@ -1,9 +1,11 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TuneVault.Application.Features.Media.Commands;
 using TuneVault.Application.Features.Media.Queries;
@@ -15,7 +17,7 @@ namespace TuneVault.API.Controllers
         public required string Title { get; set; }
         public required string Type { get; set; }
         public required int Duration { get; set; }
-        public required string OwnerId { get; set; }
+        public string? OwnerId { get; set; } // OwnerId có thể bỏ qua, backend sẽ lấy từ JWT
         public Guid? AlbumId { get; set; }
         public required IFormFile File { get; set; }
     }
@@ -23,7 +25,7 @@ namespace TuneVault.API.Controllers
     // Class hứng dữ liệu từ Frontend gửi lên cho API Share
     public class ShareMediaApiRequest
     {
-        public required string SenderId { get; set; }
+        public string? SenderId { get; set; } // Không bắt buộc, backend sẽ lấy SenderId từ JWT
         public required string ReceiverId { get; set; }
         public Guid? MediaItemId { get; set; }
         public Guid? PlaylistId { get; set; }
@@ -40,9 +42,19 @@ namespace TuneVault.API.Controllers
             _mediator = mediator;
         }
 
+        [Authorize]
         [HttpPost("upload")]
         public async Task<IActionResult> UploadMedia([FromForm] UploadMediaRequest request)
         {
+            var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("id")?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(ownerId))
+            {
+                return Unauthorized(new { success = false, message = "Không tìm thấy thông tin người dùng từ token." });
+            }
+
             // Đã sửa lại logic check File bị null
             if (request.File == null || request.File.Length == 0)
             {
@@ -71,7 +83,7 @@ namespace TuneVault.API.Controllers
                 Title = request.Title,
                 Type = request.Type,
                 Duration = request.Duration,
-                OwnerId = request.OwnerId,
+                OwnerId = ownerId, // Lấy OwnerId trực tiếp từ JWT để tránh spoof
                 AlbumId = request.AlbumId,
                 FileName = request.File.FileName,
                 FileStream = fileStream
@@ -83,12 +95,32 @@ namespace TuneVault.API.Controllers
         }
 
         // ---> ĐÂY LÀ ENDPOINT SHARE MEDIA VỪA LÀM <---
+        [Authorize]
         [HttpPost("share")]
         public async Task<IActionResult> ShareMedia([FromBody] ShareMediaApiRequest request)
         {
+            var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("id")?.Value
+                           ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(senderId))
+            {
+                return Unauthorized(new { success = false, message = "Không tìm thấy thông tin người gửi từ token." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ReceiverId))
+            {
+                return BadRequest(new { success = false, message = "ReceiverId là bắt buộc." });
+            }
+
+            if (request.MediaItemId == null && request.PlaylistId == null)
+            {
+                return BadRequest(new { success = false, message = "Phải cung cấp MediaItemId hoặc PlaylistId để chia sẻ." });
+            }
+
             var command = new ShareMediaCommand
             {
-                SenderId = request.SenderId,
+                SenderId = senderId,
                 ReceiverId = request.ReceiverId,
                 MediaItemId = request.MediaItemId,
                 PlaylistId = request.PlaylistId

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { FiUploadCloud } from 'react-icons/fi';
+import api from '../services/api';
 
 const UploadMedia = () => {
     const [title, setTitle] = useState('');
@@ -27,17 +28,17 @@ const UploadMedia = () => {
         formData.append('Title', title);
         formData.append('Type', type);
         formData.append('Duration', duration);
-        formData.append('OwnerId', localStorage.getItem('userId') || 'default-user-id');
         formData.append('File', file);
 
         try {
-            const response = await fetch('http://localhost:5277/api/media/upload', {
-                method: 'POST',
-                body: formData,
+            const response = await api.post('/media/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
+            const result = response.data;
+            if (result.success) {
                 toast.success('Tải lên thành công!');
                 setTitle('');
                 setDuration('');
