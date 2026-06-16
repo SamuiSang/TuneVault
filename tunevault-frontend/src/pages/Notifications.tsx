@@ -17,7 +17,7 @@ const Notifications = () => {
         const fetchNotifications = async () => {
             try {
                 // Gọi API lấy danh sách thông báo thật từ Backend
-                const response = await fetch('https://localhost:7277/api/notifications', {
+                const response = await fetch('http://localhost:5277/api/notifications', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

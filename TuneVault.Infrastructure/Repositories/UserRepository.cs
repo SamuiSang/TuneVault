@@ -15,8 +15,7 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> UpdateProfileAsync(string userId, string? bio, string? avatarUrl)
     {
-        // ⚠️ LƯU Ý: Hãy đổi chữ 'Users' thành đúng tên bảng lưu Người dùng của bạn (VD: AppUsers, NguoiDung...)
-        var sql = @"UPDATE Users 
+        var sql = @"UPDATE AppUser 
                     SET Bio = @Bio, AvatarUrl = @AvatarUrl 
                     WHERE Id = @UserId";
 

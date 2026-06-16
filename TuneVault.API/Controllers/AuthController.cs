@@ -39,10 +39,19 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
         // Tự động bóc tách lấy UserId từ trong cái Token JWT mà Frontend gửi lên
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                 ?? User.FindFirst("id")?.Value 
+                 ?? User.FindFirst("sub")?.Value;
         
         if (string.IsNullOrEmpty(userId))
-            return Unauthorized("Không tìm thấy thông tin người dùng.");
+    {
+        // In ra danh sách các thẻ có trong Token để xem các bạn kia đặt tên là gì
+        foreach (var claim in User.Claims)
+        {
+            Console.WriteLine($"Thẻ trong Token: {claim.Type} = {claim.Value}");
+        }
+        return Unauthorized("Không tìm thấy thông tin người dùng.");
+    }
 
         // Đóng gói vào Command để đẩy qua MediatR
         var command = new UpdateProfileCommand
@@ -57,7 +66,7 @@ public class AuthController : ControllerBase
         if (!isSuccess)
             return BadRequest("Cập nhật thông tin Profile thất bại.");
 
-        return Ok(new { Message = "Cập nhật Profile thành công rồi nhé!" });
+        return Ok(new { Message = "Cập nhật Profile thành công." });
     }
 }
 public class UpdateProfileRequest

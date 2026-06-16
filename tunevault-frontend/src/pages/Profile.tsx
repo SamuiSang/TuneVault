@@ -13,20 +13,26 @@ const Profile = () => {
   e.preventDefault();
   
   try {
-    // 1. Gọi API thật lên Backend 
-    const response = await axios.put('/api/auth/profile', { 
-      bio, 
-      avatarUrl 
-    });
+      // Lấy token từ localStorage ra để chứng minh danh tính với Backend
+      const token = localStorage.getItem('token'); 
+      console.log("===> Token lấy ra từ localStorage là:", token);
+      const response = await axios.put('http://localhost:5277/api/auth/profile', { 
+        bio, 
+        avatarUrl 
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-    // 2. Nếu Backend trả về thành công, báo cho người dùng biết
-    alert(response.data.message || "Cập nhật Profile thành công rồi nhé!");
-    
-  } catch (error: any) {
-    console.error("Lỗi khi lưu profile:", error);
-    alert(error.response?.data || "Có lỗi xảy ra, không thể cập nhật Profile.");
-  }
-};
+      alert(response.data.message || "Cập nhật Profile thành công rồi nhé!");
+      
+    } catch (error: any) {
+      console.error("Lỗi chi tiết từ Server:", error);
+      // Hiện lỗi chi tiết từ Backend trả về nếu có
+      alert(error.response?.data?.message || error.response?.data || "Có lỗi xảy ra, không thể cập nhật Profile.");
+    }
+  };
 
   // Nếu lỡ rớt vào trang này mà mất token thì báo lỗi nhẹ nhàng
   if (!user) {

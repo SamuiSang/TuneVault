@@ -1,19 +1,15 @@
-using TuneVault.API.Middlewares;
 using TuneVault.Application;
-using TuneVault.Infrastructure;
-using TuneVault.Infrastructure.Identity;
-using TuneVault.Infrastructure.SignalR;
-
-using TuneVault.Infrastructure.Repositories; 
-using TuneVault.Infrastructure.Services;
-
 using TuneVault.Application.Common.Interfaces;
 using TuneVault.Application.Common.Interfaces.Repositories;
 
-using System.Data;
-using Microsoft.AspNetCore.Identity; // Bắt buộc cho Identity
+using TuneVault.Infrastructure;
+using TuneVault.Infrastructure.Identity;
+using TuneVault.Infrastructure.SignalR;
+using TuneVault.Infrastructure.Repositories; 
+
 using TuneVault.Domain.Entities.Users; // Trỏ tới class AppUser của bạn
 
+using Microsoft.AspNetCore.Identity; // Bắt buộc cho Identity
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +21,38 @@ builder.Services.AddScoped<IMediaShareRepository, MediaShareRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    var secretKey = builder.Configuration["Jwt:Key"] ?? "DayLaMotCaiKeyBaoMatCucKyDaiChoTuneVault2026!!!"; 
+    var keyBytes = System.Text.Encoding.UTF8.GetBytes(secretKey);
+    
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = false,   // Tạm thời để false cho dễ test local
+        ValidateAudience = false, // Tạm thời để false cho dễ test local
+        ValidateLifetime = true,  // Kiểm tra thời gian hết hạn của token
+        
+        // 🌟 HAI DÒNG QUYẾT ĐỊNH ĐỂ SỬA LỖI IDX10500:
+        ValidateIssuerSigningKey = true, 
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyBytes) // <-- Cấp chìa khóa cho Backend ở đây!
+    };
+
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"[JWT ERROR] Xác thực thất bại vì: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
+});
+
 // ---> SIGNALR SERVICE <---
 builder.Services.AddSignalR();
 //---> SWAGGER , BÁO CHO SWAGGER BIẾT RẰNG HỆ THỐNG ĐANG SỬ DỤNG XÁC THỰC BẰNG JWT BEARER <---
@@ -91,8 +119,8 @@ if (app.Environment.IsDevelopment())
 // ---> ĐĂNG KÝ MIDDLEWARE HỨNG LỖI, TEST PIPELINE <---
 //app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseHttpsRedirection();
-
+//app.UseHttpsRedirection();
+app.UseRouting();
 // ---> THÊM ĐÚNG DÒNG NÀY VÀO ĐÂY <---
 app.UseCors("AllowFrontend");
 
@@ -101,11 +129,12 @@ app.UseAuthentication(); // Hỏi "Bạn là ai?"
 app.UseAuthorization();  // Hỏi "Bạn có quyền làm việc này không?"
 
 // ---> MAP SIGNALR HUB <---
+app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapControllers();
+
 
 app.Run();
