@@ -2,11 +2,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { FiHome, FiSearch, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
+// ---> BỔ SUNG CHO TUÂN: Import thư viện và Modal <---
+import { useState } from 'react';
+import CreatePlaylistModal from '../CreatePlaylistModal';
 
 // ---> ĐÂY LÀ PHẦN SIDEBAR TRÁI (CHIA 2 BOX) <---
 const Sidebar = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? "text-white" : "text-spotify-subtext";
+
+  // ---> BỔ SUNG CHO TUÂN: State quản lý modal tạo playlist <---
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   return (
     <>
@@ -44,7 +50,8 @@ const Sidebar = () => {
           <Link to="/library" className={`flex items-center gap-3 hover:text-white transition-colors ${isActive('/library')}`}>
             <BiLibrary className="text-[28px]" /> Thư viện
           </Link>
-          <button className="hover:text-white hover:bg-spotify-highlight p-2 rounded-full transition-colors" title="Tạo playlist mới">
+          {/* ---> BỔ SUNG CHO TUÂN: Gắn sự kiện onClick bật Modal <--- */}
+          <button onClick={() => setIsCreateModalOpen(true)} className="hover:text-white hover:bg-spotify-highlight p-2 rounded-full transition-colors" title="Tạo playlist mới">
             <FiPlus className="text-xl" />
           </button>
         </div>
@@ -81,6 +88,18 @@ const Sidebar = () => {
         </div>
       </div>
       {/* ---> END: ĐÂY LÀ BOX 2: THƯ VIỆN & PLAYLIST <--- */}
+      
+      {/* ---> BỔ SUNG CHO TUÂN: Hiển thị Modal tạo Playlist <--- */}
+      {isCreateModalOpen && (
+          <CreatePlaylistModal 
+              onClose={() => setIsCreateModalOpen(false)} 
+              onSuccess={() => {
+                  setIsCreateModalOpen(false);
+                  // Reload lại trang Library nếu user đang ở trang đó
+                  if (location.pathname === '/library') window.location.reload();
+              }} 
+          />
+      )}
     </>
   );
 };

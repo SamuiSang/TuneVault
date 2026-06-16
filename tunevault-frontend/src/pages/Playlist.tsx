@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getPlaylistDetail } from "../services/playlistService";
+import { getPlaylistDetail, removeTrackFromPlaylist } from "../services/playlistService";
+// ---> BỔ SUNG CHO TUÂN <---
+import { toast } from 'react-toastify';
+import { FiTrash2 } from 'react-icons/fi';
 
 type Track = {
   id: string;
@@ -52,6 +55,19 @@ export default function Playlist() {
     }
   };
 
+  // ---> BỔ SUNG CHO TUÂN: Hàm xóa bài hát khỏi Playlist <---
+  const handleRemoveTrack = async (mediaId: string) => {
+      if (!id) return;
+      try {
+          await removeTrackFromPlaylist(id, mediaId);
+          toast.success("Đã xóa bài hát khỏi playlist!");
+          loadPlaylist(id); // Reload lại playlist sau khi xóa
+      } catch (err) {
+          console.error(err);
+          toast.error("Không thể xóa bài hát!");
+      }
+  };
+
   if (loading) {
     return (
       <div className="p-6 text-white">
@@ -79,7 +95,7 @@ export default function Playlist() {
   }
 
   return (
-    <div className="p-6 text-white">
+    <div className="p-6 text-white pb-24">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">
           {playlist.name}
@@ -111,6 +127,7 @@ export default function Playlist() {
                   transition
                   rounded-lg
                   p-4
+                  group
                 "
               >
                 <div>
@@ -124,9 +141,19 @@ export default function Playlist() {
                   </p>
                 </div>
 
-                <span className="text-sm text-gray-400">
-                  {track.duration || "--:--"}
-                </span>
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-400">
+                    {track.duration || "--:--"}
+                    </span>
+                    {/* ---> BỔ SUNG CHO TUÂN: Nút xóa bài hát (icon thùng rác) <--- */}
+                    <button 
+                        onClick={() => handleRemoveTrack(track.id)}
+                        className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 p-2 transition-opacity"
+                        title="Xóa khỏi Playlist này"
+                    >
+                        <FiTrash2 className="text-lg" />
+                    </button>
+                </div>
               </div>
             )
           )}
@@ -138,7 +165,7 @@ export default function Playlist() {
           </h2>
 
           <p className="text-gray-400">
-            Chưa có bài hát nào trong playlist.
+            Chưa có bài hát nào trong playlist. Hãy tìm kiếm và thêm bài hát nhé!
           </p>
         </div>
       )}

@@ -5,7 +5,8 @@ import FollowButton from '../components/layout/FollowButton';
 import { interactionService, type MediaItemDto } from '../services/interactionService';
 
 const Home = () => {
-  const { playTrack } = usePlayer();
+  // ---> BỔ SUNG CHO HIẾU: Dùng setQueue thay cho playTrack <---
+  const { setQueue } = usePlayer();
   
   // Quản lý trạng thái danh sách bài hát lấy từ API thật
   const [listeningHistory, setListeningHistory] = useState<MediaItemDto[]>([]);
@@ -46,16 +47,23 @@ const Home = () => {
           <p className="text-spotify-subtext text-sm italic">Bạn chưa nghe bài hát nào gần đây.</p>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-6">
-            {listeningHistory.map((item) => (
+            {/* ---> BỔ SUNG CHO HIẾU: Bắt thêm index trong vòng map <--- */}
+            {listeningHistory.map((item, index) => (
               <div 
                 key={item.id} 
-                onClick={() => playTrack({
-                  id: item.id,
-                  title: item.title,
-                  artistName: item.artistName,
-                  thumbnailUrl: item.coverImageUrl || '',
-                  filePath: item.filePath
-                } as any)} // Ép kiểu để hàm playTrack không bắt bẻ cấu trúc dữ liệu từ API
+                onClick={() => {
+                  // Ép kiểu mảng data thô từ API thành MediaItem chuẩn và ném nguyên cụm vào Queue
+                  const queueTracks = listeningHistory.map(track => ({
+                    id: track.id,
+                    title: track.title,
+                    artistName: track.artistName,
+                    thumbnailUrl: track.coverImageUrl || '',
+                    filePath: track.filePath
+                  } as any));
+                  
+                  // Bắt đầu phát Queue từ vị trí index bài hát được click
+                  setQueue(queueTracks, index);
+                }} 
                 className="bg-spotify-base p-4 rounded-md hover:bg-spotify-highlight transition-all duration-300 group cursor-pointer relative"
               >
                 {/* Vùng chứa ảnh bìa */}
