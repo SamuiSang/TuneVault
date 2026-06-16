@@ -4,7 +4,7 @@ import { FiUploadCloud } from 'react-icons/fi';
 
 const UploadMedia = () => {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState('Song');
+    const [type, setType] = useState('Audio'); // Sửa 'Song' thành 'Audio' để khớp với logic Backend
     const [duration, setDuration] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -80,7 +80,7 @@ const UploadMedia = () => {
                             onChange={(e) => setType(e.target.value)}
                             className="w-full bg-white/10 p-3 rounded text-white focus:outline-none"
                         >
-                            <option value="Song" className="text-black">Bài hát (Audio)</option>
+                            <option value="Audio" className="text-black">Bài hát (Audio)</option> {/* Đã sửa Song -> Audio */}
                             <option value="Video" className="text-black">MV (Video)</option>
                             <option value="Podcast" className="text-black">Podcast</option>
                         </select>

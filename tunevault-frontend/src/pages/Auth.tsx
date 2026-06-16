@@ -51,13 +51,14 @@ const Auth = () => {
         // Axios tự động ném lỗi nếu Server trả về mã 4xx/5xx. 
         // Do đó, chạy xuống được đến dòng này nghĩa là Đăng nhập thành côgn
         if (res.data) {
-          // Lấy token ra (tùy Backend trả về chuỗi hoặc object dạng { token: "..." })
-          const token = res.data.token || res.data; 
+          // Lấy token từ response phù hợp với BaseResponse<string>
+          const token = res.data.data || res.data.token || res.data;
           
-          //Lưu token vào localStorage để file Profile.tsx lúc nãy lấy ra xài
-          localStorage.setItem('token', typeof token === 'string' ? token : res.data.token);
-          
-          login(res.data); // Truyền dữ liệu token/user vào AuthContext giống cũ
+          if (typeof token !== 'string') {
+            throw new Error('Không thể lấy token đăng nhập từ phản hồi server.');
+          }
+
+          await login(token); // Truyền đúng chuỗi token vào AuthContext và chờ fetch profile xong
           navigate('/');   // Chuyển hướng về trang chủ
         }
       } else {

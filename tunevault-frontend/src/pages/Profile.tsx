@@ -1,32 +1,61 @@
-import axios from 'axios';
 import React, { useState } from 'react';
+import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   
   // Nạp dữ liệu ban đầu từ Context (nếu có)
   const [bio, setBio] = useState(user?.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Xử lý upload ảnh thẳng lên Cloudinary
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          setIsUploading(true);
+          const response = await fetch('http://localhost:5277/api/media/upload-image', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: formData
+          });
+
+          const result = await response.json();
+          if (result.success) {
+              // result.data chính là URL trả về từ Cloudinary
+              console.log("Ảnh đã lên thư mục tunevault/images:", result.data);
+              setAvatarUrl(result.data); // Cập nhật ngay khung URL
+          } else {
+              alert(result.message || "Lỗi khi upload ảnh!");
+          }
+      } catch (error) {
+          console.error("Lỗi upload ảnh:", error);
+          alert("Không thể kết nối đến server!");
+      } finally {
+          setIsUploading(false);
+      }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
   e.preventDefault();
   
   try {
       // Lấy token từ localStorage ra để chứng minh danh tính với Backend
-      const token = localStorage.getItem('token'); 
-      console.log("===> Token lấy ra từ localStorage là:", token);
-      const response = await axios.put('http://localhost:5277/api/auth/profile', { 
-        bio, 
-        avatarUrl 
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await api.put('/auth/profile', {
+        bio,
+        avatarUrl,
       });
 
       alert(response.data.message || "Cập nhật Profile thành công rồi nhé!");
-      
+      updateUser?.({ bio, avatarUrl });
     } catch (error: any) {
       console.error("Lỗi chi tiết từ Server:", error);
       // Hiện lỗi chi tiết từ Backend trả về nếu có
@@ -61,14 +90,20 @@ const Profile = () => {
 
         <form onSubmit={handleSave} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-spotify-subtext mb-2">Ảnh đại diện (URL Link)</label>
-            <input
-              type="text"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              className="w-full p-3 bg-spotify-highlight border border-transparent rounded text-spotify-text focus:outline-none focus:border-spotify-subtext transition-colors"
-              placeholder="Nhập đường dẫn ảnh (https://...)"
-            />
+            <label className="block text-sm font-bold text-spotify-subtext mb-2">Ảnh đại diện (URL Link hoặc Tải lên)</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                className="flex-1 p-3 bg-spotify-highlight border border-transparent rounded text-spotify-text focus:outline-none focus:border-spotify-subtext transition-colors"
+                placeholder="Nhập đường dẫn ảnh (https://...)"
+              />
+              <label className={`bg-spotify-highlight hover:bg-white/20 text-white cursor-pointer px-4 py-3 rounded border border-transparent transition-colors flex items-center justify-center whitespace-nowrap ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  {isUploading ? 'Đang tải...' : 'Tải ảnh lên'}
+                  <input type="file" className="hidden" accept=".png,.jpg,.jpeg,.webp" onChange={handleImageUpload} disabled={isUploading} />
+              </label>
+            </div>
           </div>
           
           <div>

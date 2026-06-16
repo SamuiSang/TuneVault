@@ -29,7 +29,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var secretKey = builder.Configuration["Jwt:Key"] ?? "DayLaMotCaiKeyBaoMatCucKyDaiChoTuneVault2026!!!"; 
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+    var secretKey = jwtSettings["Secret"] ?? "DayLaMotCaiKeyBaoMatCucKyDaiChoTuneVault2026!!!";
     var keyBytes = System.Text.Encoding.UTF8.GetBytes(secretKey);
     
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
@@ -38,9 +39,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false, // Tạm thời để false cho dễ test local
         ValidateLifetime = true,  // Kiểm tra thời gian hết hạn của token
         
-        // 🌟 HAI DÒNG QUYẾT ĐỊNH ĐỂ SỬA LỖI IDX10500:
         ValidateIssuerSigningKey = true, 
-        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyBytes) // <-- Cấp chìa khóa cho Backend ở đây!
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyBytes)
     };
 
     options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents

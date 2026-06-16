@@ -6,6 +6,7 @@ using TuneVault.Application.Common.Interfaces;
 using TuneVault.Application.Common.Interfaces.Repositories;
 using TuneVault.Infrastructure.Services;
 using TuneVault.Infrastructure.Repositories;
+using TuneVault.Infrastructure.Configuration;
 
 namespace TuneVault.Infrastructure
 {
@@ -13,6 +14,10 @@ namespace TuneVault.Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
+            // Cấu hình Cloudinary
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.AddScoped<ICloudStorageService, CloudinaryService>();
+
             services.AddTransient<ITokenService, TokenService>();
             // Lấy chuỗi kết nối từ appsettings.json của tầng API
             var connectionString = configuration.GetConnectionString("DefaultConnection");

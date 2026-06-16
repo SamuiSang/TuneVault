@@ -99,6 +99,37 @@ namespace TuneVault.API.Controllers
             return Ok(new { success = true, data = resultId, message = "Chia sẻ thành công, đã lưu vào hộp thư!" });
         }
 
+        // ---> ENDPOINT UPLOAD HÌNH ẢNH (Avatar, Ảnh Bìa...) MỚI THÊM <---
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file, [FromServices] TuneVault.Application.Common.Interfaces.ICloudStorageService cloudStorageService)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { success = false, message = "Vui lòng chọn ảnh!" });
+            }
+
+            // Kiểm tra định dạng
+            var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new { success = false, message = "Chỉ hỗ trợ tệp .png, .jpg, .jpeg, .webp" });
+            }
+
+            try
+            {
+                using var fileStream = file.OpenReadStream();
+                // Gọi thẳng vào hàm xử lý Image, nó sẽ tự động đưa vào thư mục 'tunevault/images'
+                var imageUrl = await cloudStorageService.UploadImageAsync(fileStream, file.FileName);
+                
+                return Ok(new { success = true, data = imageUrl, message = "Upload ảnh thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Lỗi upload: {ex.Message}" });
+            }
+        }
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllMedia()
         {
@@ -114,6 +145,12 @@ namespace TuneVault.API.Controllers
             var filePath = await mediaRepository.GetMediaFilePathAsync(id);
             if (string.IsNullOrEmpty(filePath))
                 return NotFound(new { success = false, message = "Không tìm thấy file media." });
+
+            // Nếu filePath là URL từ Cloudinary (bắt đầu bằng http hoặc https) thì Redirect thẳng đến URL đó
+            if (filePath.StartsWith("http://") || filePath.StartsWith("https://"))
+            {
+                return Redirect(filePath);
+            }
 
             var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
 

@@ -39,7 +39,7 @@ public class DapperUserStore : IUserStore<AppUser>, IUserPasswordStore<AppUser>,
     public async Task<IdentityResult> DeleteAsync(AppUser user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var sql = "DELETE FROM AppUsers WHERE Id = @Id";
+        var sql = "DELETE FROM AppUser WHERE Id = @Id";
         await _db.ExecuteAsync(sql, new { Id = user.Id });
         return IdentityResult.Success;
     }
@@ -47,7 +47,7 @@ public class DapperUserStore : IUserStore<AppUser>, IUserPasswordStore<AppUser>,
     public async Task<AppUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var sql = "SELECT * FROM AppUsers WHERE Id = @Id";
+        var sql = "SELECT * FROM AppUser WHERE Id = @Id";
         return await _db.QuerySingleOrDefaultAsync<AppUser>(sql, new { Id = userId });
     }
 
