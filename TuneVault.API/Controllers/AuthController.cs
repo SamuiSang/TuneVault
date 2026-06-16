@@ -9,8 +9,10 @@ using System.Security.Claims;
 using TuneVault.Application.Features.Auth.Commands.UpdateProfile;
 namespace TuneVault.API.Controllers;
 
+
 [ApiController]
 [Route("api/[controller]")]
+
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -19,7 +21,6 @@ public class AuthController : ControllerBase
     {
         _mediator = mediator;
     }
-    [Authorize]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
@@ -27,7 +28,6 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
@@ -35,6 +35,7 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
+    [Authorize]
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {

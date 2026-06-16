@@ -1,8 +1,8 @@
 // ---> AXIOS VÀ AUTH CONTEXT <---
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { authService } from '../services/authService';
 
 const Auth = () => {
   const location = useLocation();
@@ -42,31 +42,45 @@ const Auth = () => {
     
     try {
       if (isLoginView) {
-        // Luồng xử lý Đăng nhập
-        const response = await authService.login({ email, password });
+        // 🌟 LUỒNG XỬ LÝ ĐĂNG NHẬP (Dùng Axios thuần cổng 5277)
+        const res = await axios.post('http://localhost:5277/api/auth/login', { 
+          email, 
+          password 
+        });
         
-        if (response.success && response.data) {
-          login(response.data); // Truyền token vào context
-          navigate('/'); // Chuyển hướng về trang Home
-        } else {
-          setError(response.message || 'Đăng nhập thất bại!');
+        // Axios tự động ném lỗi nếu Server trả về mã 4xx/5xx. 
+        // Do đó, chạy xuống được đến dòng này nghĩa là Đăng nhập thành côgn
+        if (res.data) {
+          // Lấy token ra (tùy Backend trả về chuỗi hoặc object dạng { token: "..." })
+          const token = res.data.token || res.data; 
+          
+          //Lưu token vào localStorage để file Profile.tsx lúc nãy lấy ra xài
+          localStorage.setItem('token', typeof token === 'string' ? token : res.data.token);
+          
+          login(res.data); // Truyền dữ liệu token/user vào AuthContext giống cũ
+          navigate('/');   // Chuyển hướng về trang chủ
         }
       } else {
-        // Luồng xử lý Đăng ký
-        const response = await authService.register({ email, password, userName });
+        //LUỒNG XỬ LÝ ĐĂNG KÝ (Dùng Axios thuần cổng 5277)
+        await axios.post('http://localhost:5277/api/auth/register', { 
+          email, 
+          password, 
+          username: userName //Lưu ý: Cột ở Backend thường viết thường chữ n (username) nhé!
+        });
         
-        if (response.success) {
-          setSuccessMsg('Đăng ký thành công! Đang chuyển sang đăng nhập...');
-          // Tự động chuyển về form login sau 2 giây
-          setTimeout(() => setIsLoginView(true), 2000);
-        } else {
-          setError(response.message || 'Đăng ký thất bại!');
-        }
+        // Chạy xuống đây là Đăng ký thành công
+        setSuccessMsg('Đăng ký thành công! Đang chuyển sang đăng nhập...');
+        // Tự động chuyển về form login sau 2 giây
+        setTimeout(() => setIsLoginView(true), 2000);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi kết nối tới máy chủ.');
+      console.error("Lỗi chi tiết từ hệ thống:", err);
+      // Hiện lỗi chi tiết do Backend trả về (Ví dụ: "Email đã tồn tại", "Sai mật khẩu")
+      setError(err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra khi kết nối tới máy chủ.');
     }
   };
+
+  
   // ---> END: XỬ LÝ SUBMIT (ĐĂNG NHẬP & ĐĂNG KÝ) <---
 
   return (
