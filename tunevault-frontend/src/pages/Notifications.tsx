@@ -16,7 +16,13 @@ const Notifications = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                // Gọi API lấy danh sách thông báo thật từ Backend
+                // Lấy userId từ localStorage
+                const userId = localStorage.getItem('userId');
+
+                if (!userId) {
+                    setIsLoading(false);
+                    return;
+                }
                 const response = await fetch('http://localhost:5277/api/notifications', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
