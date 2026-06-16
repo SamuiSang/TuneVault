@@ -8,7 +8,8 @@ import React, { useRef, useState } from 'react';
 import ShareModal from '../ShareModal'; 
 
 const PlayerBar = () => {
-  const { currentTrack, streamUrl, isLoading } = usePlayer(); 
+  // ---> BỔ SUNG CHO HIẾU: Gọi playNext, playPrev từ Context <---
+  const { currentTrack, streamUrl, isLoading, playNext, playPrev } = usePlayer(); 
   const playerRef = useRef<AudioPlayer>(null);
   const [volume, setVolume] = useState(1);
   
@@ -85,8 +86,14 @@ const PlayerBar = () => {
             autoPlay={true}
             src={streamUrl || undefined} 
             onPlay={() => console.log("onPlay", currentTrack?.title)}
+            
+            // ---> BỔ SUNG CHO HIẾU: Bật nút bấm và tự động Next <---
             showSkipControls={true}
             showJumpControls={false}
+            onClickNext={playNext}
+            onClickPrevious={playPrev}
+            onEnded={playNext} 
+
             layout="stacked-reverse"
             customAdditionalControls={[]}
             customVolumeControls={[]} 
