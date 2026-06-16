@@ -18,15 +18,12 @@ const Notifications = () => {
             try {
                 // Lấy userId từ localStorage
                 const userId = localStorage.getItem('userId');
-                
-                // Nếu chưa đăng nhập (không có userId) thì dừng luôn, báo lỗi nhẹ
+
                 if (!userId) {
                     setIsLoading(false);
                     return;
                 }
-
-                // ĐÃ FIX: Gọi đúng URL có chứa userId
-                const response = await fetch(`https://localhost:7277/api/notifications/user/${userId}`, {
+                const response = await fetch('http://localhost:5277/api/notifications', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

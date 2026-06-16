@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = "https://localhost:7277/api/search";
+const API_URL = "http://localhost:5277/api/search";
 
 export const searchMedia = async (keyword: string) => {
   const response = await api.get(`${API_URL}/media`, {

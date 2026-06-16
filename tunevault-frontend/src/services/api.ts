@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Thay đổi port nếu Backend của bạn chạy port khác
-const API_BASE_URL = 'https://localhost:7277/api';
+const API_BASE_URL = 'http://localhost:5277/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

@@ -18,7 +18,7 @@ namespace TuneVault.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             services.AddScoped<IPlaylistRepository, PlaylistRepository>();
             services.AddScoped<ISearchRepository, SearchRepository>();
-            
+            services.AddScoped<IUserRepository, UserRepository>();
             // Đăng ký các Repositories cho Interactions & History
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IPlayHistoryRepository, PlayHistoryRepository>();
