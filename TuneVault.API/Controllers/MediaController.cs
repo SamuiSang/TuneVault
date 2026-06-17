@@ -170,35 +170,24 @@ namespace TuneVault.API.Controllers
             return Ok(result);
         }
 
-        // 🚀 ĐOẠN ĐÃ ĐƯỢC TỐI ƯU HÓA HOÀN TOÀN:
-        [HttpGet("{id}/stream")]
+       [HttpGet("{id}/stream")]
         public async Task<IActionResult> StreamMedia(Guid id, [FromServices] IMediaRepository mediaRepository, CancellationToken cancellationToken)
         {
-            // 1. Gọi Repo lấy trực tiếp chuỗi link lưu trong DB ra
-            var filePath = await mediaRepository.GetMediaFilePathAsync(id);
+            // 1. Gọi Repo lấy trực tiếp chuỗi link (FilePath) lưu trong DB ra
+            var filePath = await mediaRepository.GetMediaFilePathAsync(id, cancellationToken);
             
             if (string.IsNullOrEmpty(filePath))
             {
                 return NotFound(new { success = false, message = "Không tìm thấy file media yêu cầu." });
             }
-
-            // 2. Nếu là URL Cloudinary -> Trả thẳng JSON chứa link về cho Frontend tự tải/stream trực tiếp.
-            // Điều này giải phóng hoàn toàn băng thông cho Server Backend của bạn!
-            if (filePath.StartsWith("http://") || filePath.StartsWith("https://"))
-            {
-                return Ok(new { success = true, url = filePath });
-            }
-
-            // 3. Phương án dự phòng (Fallback): Nếu vẫn còn file vật lý cục bộ cũ
-            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
-
-            if (!System.IO.File.Exists(physicalPath))
-            {
-                return NotFound(new { success = false, message = "File vật lý không tồn tại trên server." });
-            }
-
-            var contentType = filePath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ? "video/mp4" : "audio/mpeg";
-            return PhysicalFile(physicalPath, contentType, enableRangeProcessing: true);
+            // 2. Lược bỏ/Đơn giản hóa phần stream file vật lý.
+            // Vì media lưu trên Cloudinary, API chỉ cần Query DB và trả thẳng FilePath (URL Cloudinary) về cho Frontend dưới dạng JSON.
+            // Trình duyệt của user sẽ tự tải/stream trực tiếp từ server của Cloudinary, giúp Backend của bạn cực kỳ nhẹ.
+            return Ok(new 
+            { 
+                success = true, 
+                streamUrl = filePath // Đổi key thành 'streamUrl' để khớp hoàn toàn với interface frontend
+            });
         }
     }
 }

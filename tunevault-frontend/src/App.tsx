@@ -12,16 +12,17 @@ import UploadMedia from './pages/UploadMedia';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import VideoPlayerPage from './pages/VideoPlayerPage'; // ---> BƯỚC 1: THÊM DÒNG IMPORT NÀY
 
 function App() {
   return (
     <PlayerProvider>
-    <Router>
+      <Router>
         <Routes>
           {/* Route Auth (Đăng nhập/Đăng ký) thường sẽ đứng độc lập, không có Sidebar/PlayerBar */}
           <Route path="/auth" element={<Auth />} />
 
-          {/* Các route con nằm bên trong MainLayout */}
+          {/* Các route con nằm bên trong MainLayout (Có chứa Sidebar, PlayerBar/AudioBar chung) */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="search" element={<Search />} />
@@ -32,6 +33,10 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
           </Route>
+
+          {/* ---> BƯỚC 2: THÊM ROUTE RIÊNG CHO VIDEO TẠI ĐÂY
+              Tuyến đường này nằm NGOÀI MainLayout nên sẽ có view riêng biệt, hoàn toàn không hiển thị Audio Bar */}
+          <Route path="/video/:id" element={<VideoPlayerPage />} />
         </Routes>
       </Router>
       <ToastContainer position="bottom-right" theme="dark" autoClose={3000} />

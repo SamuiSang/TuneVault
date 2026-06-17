@@ -8,7 +8,7 @@ using TuneVault.Application.Features.Interactions.Queries;
 namespace TuneVault.API.Controllers;
 
 /// <summary>
-/// REST API cho tương tác & lịch sử (Favorite, PlayHistory, Follow)
+/// REST API cho tương tác and lịch sử (Favorite, PlayHistory, Follow)
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]

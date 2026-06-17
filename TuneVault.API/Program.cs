@@ -88,6 +88,9 @@ builder.Services.AddIdentityCore<AppUser>(options => {
 .AddDefaultTokenProviders();
 // (Ghi chú: Sau khi tạo xong file DapperUserStore, chúng ta sẽ thêm lệnh đăng ký nó vào ngay dưới dòng này)
 
+// ---> inject IHttpContextAccessor <---
+builder.Services.AddHttpContextAccessor();
+
 // ---> KÍCH HOẠT KẾT NỐI DATABASE VÀ REPOSITORY <---
 builder.Services.AddInfrastructureServices(builder.Configuration); // Dapper và các Repo
 
