@@ -49,7 +49,7 @@ const Topbar = () => {
           <div className="relative" ref={dropdownRef}>
             <button //AVATAR NGƯỜI DÙNG
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-8 h-8 bg-pink-500 text-black rounded-full overflow-hidden flex items-center justify-center font-bold hover:scale-105 transition-transform"
+              className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold hover:scale-105 transition-transform ${user?.avatarUrl ? 'bg-transparent' : 'bg-pink-500 text-black'}`}
               title={user?.userName}
             >
               {user?.avatarUrl ? (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import api from '../services/api';
 
 interface ShareModalProps {
     mediaId: string;
@@ -19,27 +20,18 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
         }
 
         setIsSharing(true);
-        const senderId = localStorage.getItem('userId');
 
         try {
-            const response = await fetch('https://localhost:7277/api/media/share', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    senderId: senderId,
-                    receiverId: receiverId,
-                    mediaId: mediaId
-                })
+            const response = await api.post('/media/share', {
+                receiverId,
+                mediaItemId: mediaId
             });
 
-            if (response.ok) {
+            if (response.data?.success) {
                 toast.success('Chia sẻ nhạc thành công! Đã báo SignalR cho đối tác 🚀');
                 onClose(); // Đóng modal
             } else {
-                toast.error('Có lỗi xảy ra khi chia sẻ!');
+                toast.error(response.data?.message || 'Có lỗi xảy ra khi chia sẻ!');
             }
         } catch (error) {
             console.error('Lỗi share nhạc:', error);

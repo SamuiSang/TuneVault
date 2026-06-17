@@ -49,17 +49,33 @@ const Auth = () => {
         });
         
         if (res.data) {
-          const token = res.data.token || res.data; 
-          localStorage.setItem('token', typeof token === 'string' ? token : res.data.token);
+//LUỒNG XỬ LÝ ĐĂNG NHẬP (Dùng Axios thuần cổng 5277)
+        const res = await axios.post('http://localhost:5277/api/auth/login', { 
+          email, 
+          password 
+        });
+        
+        if (res.data) {
+          // 1. Lấy token từ response phù hợp với BaseResponse<string> (Từ nhánh main)
+          const token = res.data.data || res.data.token || res.data;
           
-          // 1. Bật thông báo thành công lên màn hình giống như lúc Đăng ký
+          if (typeof token !== 'string') {
+            throw new Error('Không thể lấy token đăng nhập từ phản hồi server.');
+          }
+
+          // 2. Bật thông báo thành công lên màn hình giống như lúc Đăng ký (Từ nhánh Thanh)
           setSuccessMsg('Đăng nhập thành công! Đang đăng nhập vào hệ thống...');
           
-          // 2. Trì hoãn chuyển trang 1.5 giây để người dùng kịp nhìn thấy thông báo xanh
-          setTimeout(() => {
-            login(res.data); // Truyền dữ liệu vào Context
-            navigate('/');   // Tiến hành chuyển hướng về trang chủ
+          // 3. Trì hoãn 1.5 giây để kịp nhìn thông báo xanh, sau đó chạy logic async của main
+          setTimeout(async () => {
+            try {
+              await login(token); // Truyền đúng chuỗi token vào AuthContext và chờ fetch profile xong
+              navigate('/');      // Chuyển hướng về trang chủ
+            } catch (loginErr: any) {
+              setError(loginErr.message || 'Có lỗi xảy ra khi đồng bộ tài khoản.');
+            }
           }, 1500); 
+        }
         }
       } else {
         //LUỒNG XỬ LÝ ĐĂNG KÝ

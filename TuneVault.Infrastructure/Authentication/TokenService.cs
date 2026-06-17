@@ -29,6 +29,11 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.Name, user.UserName ?? "")
         };
 
+        if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+        {
+            claims.Add(new Claim("avatarUrl", user.AvatarUrl!));
+        }
+
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],

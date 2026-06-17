@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using TuneVault.Application.Common.Interfaces;
+using TuneVault.Domain.Entities.Users;
 
 namespace TuneVault.Infrastructure.Repositories;
 
@@ -15,13 +16,17 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> UpdateProfileAsync(string userId, string? bio, string? avatarUrl)
     {
-        var sql = @"UPDATE AppUser 
-                    SET Bio = @Bio, AvatarUrl = @AvatarUrl 
+        var sql = @"UPDATE AppUser
+                    SET Bio = @Bio, AvatarUrl = @AvatarUrl
                     WHERE Id = @UserId";
 
-        // Thực thi câu lệnh SQL, Dapper trả về số dòng bị ảnh hưởng
         var rowsAffected = await _db.ExecuteAsync(sql, new { UserId = userId, Bio = bio, AvatarUrl = avatarUrl });
-        
-        return rowsAffected > 0; // Trả về true nếu cập nhật thành công ít nhất 1 dòng
+        return rowsAffected > 0;
+    }
+
+    public async Task<AppUser?> GetByIdAsync(string userId)
+    {
+        var sql = "SELECT * FROM AppUser WHERE Id = @UserId";
+        return await _db.QuerySingleOrDefaultAsync<AppUser>(sql, new { UserId = userId });
     }
 }
