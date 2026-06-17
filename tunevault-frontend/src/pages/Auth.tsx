@@ -42,7 +42,7 @@ const Auth = () => {
     
     try {
       if (isLoginView) {
-        // 🌟 LUỒNG XỬ LÝ ĐĂNG NHẬP
+        //LUỒNG XỬ LÝ ĐĂNG NHẬP
         const res = await axios.post('http://localhost:5277/api/auth/login', { 
           email, 
           password 
@@ -62,7 +62,7 @@ const Auth = () => {
           }, 1500); 
         }
       } else {
-        // 🌟 LUỒNG XỬ LÝ ĐĂNG KÝ
+        //LUỒNG XỬ LÝ ĐĂNG KÝ
         await axios.post('http://localhost:5277/api/auth/register', { 
           email, 
           password, 
@@ -80,15 +80,15 @@ const Auth = () => {
   // ---> END: XỬ LÝ SUBMIT (ĐĂNG NHẬP & ĐĂNG KÝ) <---
 
 return (
-    // 🌟 1. BACKGROUND ĐƯỢC PHỐI GRADIENT RADIAL + CHỐNG TRÀN OVERFLOW
+    //BACKGROUND ĐƯỢC PHỐI GRADIENT RADIAL + CHỐNG TRÀN OVERFLOW
     <div className="relative flex h-screen items-center justify-center bg-gradient-to-br from-[#121212] via-[#1c1c1c] to-[#0a110d] text-spotify-text overflow-hidden">
       
-      {/* 🌟 2. CÁC ĐÈN NỀN NEON LẬP LÁNH CHẠY NGẦM (AMBIENT GLOW EFFECTS) */}
+      {/*ĐÈN NỀN NEON LẬP LÁNH CHẠY NGẦM (AMBIENT GLOW EFFECTS) */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-spotify-primary/10 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#1db954]/5 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute top-[20%] right-[10%] w-[350px] h-[350px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* 🌟 3. CARD ĐĂNG NHẬP ĐƯỢC ĐỘ THÀNH KÍNH MỜ TRONG SUỐT (GLASSMORPHISM) */}
+      {/*CARD ĐĂNG NHẬP ĐƯỢC ĐỘ THÀNH KÍNH MỜ TRONG SUỐT (GLASSMORPHISM) */}
       <div className="relative z-10 w-full max-w-md p-8 space-y-6 bg-[#181818]/60 backdrop-blur-2xl rounded-2xl border border-white/5 shadow-[0_12px_40px_0_rgba(0,0,0,0.7)]">
         
         <h1 className="text-3xl font-black text-center tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
