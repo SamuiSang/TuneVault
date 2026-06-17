@@ -49,16 +49,15 @@ const Home = () => {
               <div 
                 key={item.id} 
                 onClick={() => {
+                  //Dùng ...track để giữ lại toàn bộ các thuộc tính bắt buộc (type, duration, ownerId)
                   const queueTracks = mediaItems.map(track => ({
-                    id: track.id,
-                    title: track.title,
+                    ...track, 
                     artistName: track.ownerId || 'Unknown Artist',
                     thumbnailUrl: track.thumbnailUrl || 'default-cover.png',
-                    filePath: track.filePath,
-                  } as MediaItem));
+                  })); // <-- Không cần dùng "as MediaItem" nữa vì TypeScript đã tự nhận diện
 
                   setQueue(queueTracks, index);
-                }} 
+                }}
                 className="bg-spotify-base p-4 rounded-md hover:bg-spotify-highlight transition-all duration-300 group cursor-pointer relative"
               >
                 <div className="relative mb-4">

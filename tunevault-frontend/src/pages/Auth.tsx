@@ -72,10 +72,10 @@ const Auth = () => {
               await login(token); // Truyền đúng chuỗi token vào AuthContext và chờ fetch profile xong
               navigate('/');      // Chuyển hướng về trang chủ
             } catch (loginErr: any) {
-              setError(loginErr.message || 'Có lỗi xảy ra khi đồng bộ tài khoản.');
-            }
-          }, 1500); 
-        }
+                setError(loginErr.message || 'Có lỗi xảy ra khi đồng bộ tài khoản.');
+              }
+            }, 1500); 
+          }
         }
       } else {
         //LUỒNG XỬ LÝ ĐĂNG KÝ
