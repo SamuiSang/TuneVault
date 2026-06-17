@@ -1,170 +1,193 @@
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Dapper;
 using TuneVault.Application.Common.Interfaces.Repositories;
 
-namespace TuneVault.Infrastructure.Repositories;
-
-/// <summary>
-/// Implementation của IMediaRepository sử dụng Dapper
-/// </summary>
-public class MediaRepository : IMediaRepository
+namespace TuneVault.Infrastructure.Repositories
 {
-    private readonly IDbConnection _dbConnection;
-
-    public MediaRepository(IDbConnection dbConnection)
-    {
-        _dbConnection = dbConnection;
-    }
-
     /// <summary>
-    /// Lấy thông tin chi tiết một media item
+    /// Implementation của IMediaRepository sử dụng Dapper
     /// </summary>
-    public async Task<GetMediaResponse?> GetMediaByIdAsync(Guid mediaId, CancellationToken cancellationToken = default)
+    public class MediaRepository : IMediaRepository
     {
-        const string query = @"
-            SELECT Id, Title, Description, Type, Duration, ThumbnailUrl, AlbumId, OwnerId
-            FROM MediaItem
-            WHERE Id = @Id";
+        private readonly IDbConnection _dbConnection;
 
-        var media = await _dbConnection.QuerySingleOrDefaultAsync<GetMediaResponse>(
-            query,
-            new { Id = mediaId });
-
-        return media;
-    }
-
-    /// <summary>
-    /// Lấy file path của media để stream
-    /// </summary>
-    public async Task<string?> GetMediaFilePathAsync(Guid mediaId, CancellationToken cancellationToken = default)
-    {
-        const string query = @"
-            SELECT FilePath
-            FROM MediaItem
-            WHERE Id = @Id";
-
-        var filePath = await _dbConnection.QuerySingleOrDefaultAsync<string>(
-            query,
-            new { Id = mediaId });
-
-        return filePath;
-    }
-
-    /// <summary>
-    /// Lấy metadata của media (kích thước file, duration, v.v.)
-    /// </summary>
-    public async Task<GetMediaMetadataResponse?> GetMediaMetadataAsync(Guid mediaId, CancellationToken cancellationToken = default)
-    {
-        const string query = @"
-            SELECT Id, Title, Duration, FilePath, Type as ContentType, 0 as FileSize
-            FROM MediaItem
-            WHERE Id = @Id";
-
-        var metadata = await _dbConnection.QuerySingleOrDefaultAsync<GetMediaMetadataResponse>(
-            query,
-            new { Id = mediaId });
-
-        return metadata;
-    }
-
-    /// <summary>
-    /// Tạo mới một media item
-    /// </summary>
-    public async Task<Guid> CreateMediaAsync(CreateMediaRequest media, CancellationToken cancellationToken = default)
-    {
-        var mediaId = Guid.NewGuid();
-
-        const string query = @"
-            INSERT INTO MediaItem (Id, Title, Description, Type, Duration, FilePath, ThumbnailUrl, AlbumId, OwnerId)
-            VALUES (@Id, @Title, @Description, @Type, @Duration, @FilePath, @ThumbnailUrl, @AlbumId, @OwnerId)";
-
-        var parameters = new
+        public MediaRepository(IDbConnection dbConnection)
         {
-            Id = mediaId,
-            Title = media.Title,
-            Description = media.Description,
-            Type = media.Type,
-            Duration = media.Duration,
-            FilePath = media.FilePath,
-            ThumbnailUrl = media.ThumbnailUrl,
-            AlbumId = media.AlbumId,
-            OwnerId = media.OwnerId
-        };
-
-        await _dbConnection.ExecuteAsync(query, parameters);
-        return mediaId;
-    }
-
-    /// <summary>
-    /// Cập nhật metadata của media
-    /// </summary>
-    public async Task<bool> UpdateMediaAsync(Guid mediaId, UpdateMediaRequest media, CancellationToken cancellationToken = default)
-    {
-        var setClause = new List<string>();
-        var parameters = new DynamicParameters();
-        parameters.Add("@Id", mediaId);
-
-        if (!string.IsNullOrEmpty(media.Title))
-        {
-            setClause.Add("Title = @Title");
-            parameters.Add("@Title", media.Title);
+            _dbConnection = dbConnection;
         }
 
-        if (!string.IsNullOrEmpty(media.Description))
+        /// <summary>
+        /// Lấy thông tin chi tiết một media item
+        /// </summary>
+        public async Task<GetMediaResponse?> GetMediaByIdAsync(Guid mediaId, CancellationToken cancellationToken = default)
         {
-            setClause.Add("Description = @Description");
-            parameters.Add("@Description", media.Description);
+            const string query = @"
+                SELECT Id, Title, Description, Type, Duration, ThumbnailUrl, AlbumId, OwnerId
+                FROM MediaItem
+                WHERE Id = @Id";
+
+            var media = await _dbConnection.QuerySingleOrDefaultAsync<GetMediaResponse>(
+                query,
+                new { Id = mediaId });
+
+            return media;
         }
 
-        if (!string.IsNullOrEmpty(media.ThumbnailUrl))
+        /// <summary>
+        /// Lấy file path của media để stream
+        /// </summary>
+        public async Task<string?> GetMediaFilePathAsync(Guid mediaId, CancellationToken cancellationToken = default)
         {
-            setClause.Add("ThumbnailUrl = @ThumbnailUrl");
-            parameters.Add("@ThumbnailUrl", media.ThumbnailUrl);
+            const string query = @"
+                SELECT FilePath
+                FROM MediaItem
+                WHERE Id = @Id";
+
+            var filePath = await _dbConnection.QuerySingleOrDefaultAsync<string>(
+                query,
+                new { Id = mediaId });
+
+            return filePath;
         }
 
-        if (setClause.Count == 0)
-            return true; // Không có gì để cập nhật
+        /// <summary>
+        /// Lấy metadata của media (kích thước file, duration, v.v.)
+        /// </summary>
+        public async Task<GetMediaMetadataResponse?> GetMediaMetadataAsync(Guid mediaId, CancellationToken cancellationToken = default)
+        {
+            const string query = @"
+                SELECT Id, Title, Duration, FilePath, Type as ContentType, 0 as FileSize
+                FROM MediaItem
+                WHERE Id = @Id";
 
-        var query = $"UPDATE MediaItem SET {string.Join(", ", setClause)} WHERE Id = @Id";
-        var rowsAffected = await _dbConnection.ExecuteAsync(query, parameters);
+            var metadata = await _dbConnection.QuerySingleOrDefaultAsync<GetMediaMetadataResponse>(
+                query,
+                new { Id = mediaId });
 
-        return rowsAffected > 0;
-    }
+            return metadata;
+        }
 
-    /// <summary>
-    /// Lấy danh sách media của một artist
-    /// </summary>
-    public async Task<List<GetMediaResponse>> GetMediaByArtistAsync(Guid artistId, CancellationToken cancellationToken = default)
-    {
-        const string query = @"
-            SELECT DISTINCT m.Id, m.Title, m.Description, m.Type, m.Duration, m.ThumbnailUrl, m.AlbumId, m.OwnerId
-            FROM MediaItem m
-            INNER JOIN MediaArtist ma ON m.Id = ma.MediaItemId
-            WHERE ma.ArtistId = @ArtistId
-            ORDER BY m.Title";
+        /// <summary>
+        /// Tạo mới một media item
+        /// </summary>
+        public async Task<Guid> CreateMediaAsync(CreateMediaRequest media, CancellationToken cancellationToken = default)
+        {
+            var mediaId = Guid.NewGuid();
 
-        var media = await _dbConnection.QueryAsync<GetMediaResponse>(
-            query,
-            new { ArtistId = artistId });
+            const string query = @"
+                INSERT INTO MediaItem (Id, Title, Description, Type, Duration, FilePath, ThumbnailUrl, AlbumId, OwnerId)
+                VALUES (@Id, @Title, @Description, @Type, @Duration, @FilePath, @ThumbnailUrl, @AlbumId, @OwnerId)";
 
-        return media.ToList();
-    }
+            var parameters = new
+            {
+                Id = mediaId,
+                Title = media.Title,
+                Description = media.Description,
+                Type = media.Type,
+                Duration = media.Duration,
+                FilePath = media.FilePath,
+                ThumbnailUrl = media.ThumbnailUrl,
+                AlbumId = media.AlbumId,
+                OwnerId = media.OwnerId
+            };
 
-    /// <summary>
-    /// Lấy danh sách media của một album
-    /// </summary>
-    public async Task<List<GetMediaResponse>> GetMediaByAlbumAsync(Guid albumId, CancellationToken cancellationToken = default)
-    {
-        const string query = @"
-            SELECT Id, Title, Description, Type, Duration, ThumbnailUrl, AlbumId, OwnerId
-            FROM MediaItem
-            WHERE AlbumId = @AlbumId
-            ORDER BY Title";
+            await _dbConnection.ExecuteAsync(query, parameters);
+            return mediaId;
+        }
 
-        var media = await _dbConnection.QueryAsync<GetMediaResponse>(
-            query,
-            new { AlbumId = albumId });
+        /// <summary>
+        /// Cập nhật metadata của media
+        /// </summary>
+        public async Task<bool> UpdateMediaAsync(Guid mediaId, UpdateMediaRequest media, CancellationToken cancellationToken = default)
+        {
+            var setClause = new List<string>();
+            var parameters = new DynamicParameters();
+            parameters.Add("@Id", mediaId);
 
-        return media.ToList();
+            if (!string.IsNullOrEmpty(media.Title))
+            {
+                setClause.Add("Title = @Title");
+                parameters.Add("@Title", media.Title);
+            }
+
+            if (!string.IsNullOrEmpty(media.Description))
+            {
+                setClause.Add("Description = @Description");
+                parameters.Add("@Description", media.Description);
+            }
+
+            if (!string.IsNullOrEmpty(media.ThumbnailUrl))
+            {
+                setClause.Add("ThumbnailUrl = @ThumbnailUrl");
+                parameters.Add("@ThumbnailUrl", media.ThumbnailUrl);
+            }
+
+            if (setClause.Count == 0)
+                return true; // Không có gì để cập nhật
+
+            var query = $"UPDATE MediaItem SET {string.Join(", ", setClause)} WHERE Id = @Id";
+            var rowsAffected = await _dbConnection.ExecuteAsync(query, parameters);
+
+            return rowsAffected > 0;
+        }
+
+        /// <summary>
+        /// Lấy danh sách media của một artist
+        /// </summary>
+        public async Task<List<GetMediaResponse>> GetMediaByArtistAsync(Guid artistId, CancellationToken cancellationToken = default)
+        {
+            const string query = @"
+                SELECT DISTINCT m.Id, m.Title, m.Description, m.Type, m.Duration, m.ThumbnailUrl, m.AlbumId, m.OwnerId
+                FROM MediaItem m
+                INNER JOIN MediaArtist ma ON m.Id = ma.MediaItemId
+                WHERE ma.ArtistId = @ArtistId
+                ORDER BY m.Title";
+
+            var media = await _dbConnection.QueryAsync<GetMediaResponse>(
+                query,
+                new { ArtistId = artistId });
+
+            return media.ToList();
+        }
+
+        /// <summary>
+        /// Lấy danh sách media của một album
+        /// </summary>
+        public async Task<List<GetMediaResponse>> GetMediaByAlbumAsync(Guid albumId, CancellationToken cancellationToken = default)
+        {
+            const string query = @"
+                SELECT Id, Title, Description, Type, Duration, ThumbnailUrl, AlbumId, OwnerId
+                FROM MediaItem
+                WHERE AlbumId = @AlbumId
+                ORDER BY Title";
+
+            var media = await _dbConnection.QueryAsync<GetMediaResponse>(
+                query,
+                new { AlbumId = albumId });
+
+            return media.ToList();
+        }
+
+        /// <summary>
+        /// Thực thi lệnh xóa bài hát khỏi hệ thống cơ sở dữ liệu
+        /// </summary>
+        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+        {
+            const string sql = "DELETE FROM MediaItem WHERE Id = @Id;";
+            
+            // 🌟 ĐÃ ĐỒNG BỘ: Đổi hoàn toàn sang '_dbConnection' đúng chuẩn của nhóm bạn
+            var affectedRows = await _dbConnection.ExecuteAsync(new CommandDefinition(
+                sql, 
+                new { Id = id }, 
+                cancellationToken: cancellationToken
+            ));
+            
+            return affectedRows > 0;
+        }
     }
 }

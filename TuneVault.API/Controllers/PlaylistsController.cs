@@ -6,7 +6,7 @@ using TuneVault.Application.Features.Playlist.Commands.AddTrackToPlaylist;
 using TuneVault.Application.Features.Playlist.Commands.CreatePlaylist;
 using TuneVault.Application.Features.Playlist.Commands.DeletePlaylist;
 using TuneVault.Application.Features.Playlist.Commands.RemoveTrackFromPlaylist;
-using TuneVault.Application.Features.Playlist.Commands.ShareMedia;
+using TuneVault.Application.Features.Media.Commands;
 using TuneVault.Application.Features.Playlist.Commands.UpdatePlaylist;
 using TuneVault.Application.Features.Playlist.Queries.GetPlaylistDetail;
 using TuneVault.Application.Features.Playlist.Queries.GetSharedMedia;

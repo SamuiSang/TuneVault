@@ -6,6 +6,7 @@ namespace TuneVault.Application.Common.Interfaces.Repositories;
 public interface IMediaShareRepository
 {
     Task<Guid> CreateMediaShareAsync(CreateMediaShareRequest request, CancellationToken cancellationToken = default);
+    Task<bool> HasSharedInLast24HoursAsync(string senderId, string receiverId, Guid? mediaItemId, CancellationToken cancellationToken);
 }
 
 public record CreateMediaShareRequest(

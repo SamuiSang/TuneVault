@@ -17,7 +17,24 @@ namespace TuneVault.Application.Features.Media.Commands
 
         public async Task<Guid> Handle(ShareMediaCommand request, CancellationToken cancellationToken)
         {
-            // Khởi tạo Request từ dữ liệu của Command gửi lên
+            // 🌟 1. CHỐNG SPAM: Kiểm tra xem trong vòng 24h qua đã gửi bài này cho người này chưa
+            // (Bạn check xem trong IMediaShareRepository nhóm có sẵn hàm check tương tự chưa, 
+            // nếu chưa có thì có thể nhờ bạn viết Repo bổ sung một hàm dạng Bool giống dưới đây nhé)
+            bool isSpam = await _mediaShareRepository.HasSharedInLast24HoursAsync(
+                request.SenderId, 
+                request.ReceiverId, 
+                request.MediaItemId, 
+                cancellationToken
+            );
+
+            // Nếu phát hiện spam, trả về Guid.Empty (hoặc throw lỗi tùy gu của nhóm) 
+            // để Frontend biết và không ghi nhận lượt chia sẻ mới
+            if (isSpam)
+            {
+                return Guid.Empty; 
+            }
+
+            // 2. Nếu không spam -> Tiếp tục luồng khởi tạo Request cũ của nhóm bạn
             var repoRequest = new CreateMediaShareRequest(
                 request.SenderId,
                 request.ReceiverId,
@@ -25,10 +42,10 @@ namespace TuneVault.Application.Features.Media.Commands
                 request.PlaylistId
             );
 
-            // Gọi Repository xử lý lưu DB + tạo Notification cùng lúc thông qua Transaction
+            // 3. Gọi Repository xử lý lưu DB + tạo Notification thông qua Transaction giống hệt cũ
             var shareId = await _mediaShareRepository.CreateMediaShareAsync(repoRequest, cancellationToken);
 
-            // Trả về ID của lượt chia sẻ để API Controller phản hồi về cho Client
+            // Trả về ID của lượt chia sẻ
             return shareId;
         }
     }

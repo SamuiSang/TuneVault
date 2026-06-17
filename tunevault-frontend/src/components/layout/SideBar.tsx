@@ -2,17 +2,41 @@ import { Link, useLocation } from 'react-router-dom';
 import { FiHome, FiSearch, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
-// ---> BỔ SUNG CHO TUÂN: Import thư viện và Modal <---
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CreatePlaylistModal from '../CreatePlaylistModal';
+
+// ---> BỔ SUNG: Import API service và Auth context <---
+import { getUserPlaylists } from '../../services/playlistService';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ---> ĐÂY LÀ PHẦN SIDEBAR TRÁI (CHIA 2 BOX) <---
 const Sidebar = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? "text-white" : "text-spotify-subtext";
 
-  // ---> BỔ SUNG CHO TUÂN: State quản lý modal tạo playlist <---
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // ---> BỔ SUNG: State và logic lấy danh sách playlist <---
+  const [playlists, setPlaylists] = useState<any[]>([]);
+  const { user } = useAuth(); // Lấy user từ Context
+
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      // Ưu tiên lấy từ Context, dự phòng localStorage nếu Context chưa kịp update
+      const userId = user?.id || localStorage.getItem('userId');
+      
+      if (!userId) return; // Chưa đăng nhập thì không gọi API
+      
+      try {
+        const data = await getUserPlaylists(userId);
+        setPlaylists(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Lỗi khi tải playlist cho Sidebar:", error);
+      }
+    };
+
+    fetchPlaylists();
+  }, [user?.id]); // Tự động chạy lại nếu user thay đổi (đăng nhập/đăng xuất)
 
   return (
     <>
@@ -22,19 +46,16 @@ const Sidebar = () => {
           <FiHome className="text-[28px]" /> Trang chủ
         </Link>
 
-        {/* // Thay đổi của Hiếu: Sắp xếp lại vị trí Tìm kiếm và sửa lỗi đóng/mở thẻ lồng nhau */}
         <Link to="/search" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/search')}`}>
           <FiSearch className="text-[28px]" /> Tìm kiếm
         </Link>
 
-        <Link to="/library" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
-          <BiLibrary className="text-2xl" /> Thư viện
+        <Link to="/library" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/library')}`}>
+          <BiLibrary className="text-[28px]" /> Thư viện
         </Link>
         
-        {/* chiến mới thêm */}
-        {/* // Thay đổi của Hiếu: Giữ lại mục Hộp thư và cấu trúc lại thẻ bao bọc hợp lệ */}
-        <Link to="/share-inbox" className="flex items-center gap-4 hover:text-spotify-text transition-colors">
-          <FiInbox className="text-2xl" /> Hộp thư
+        <Link to="/share-inbox" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/share-inbox')}`}>
+          <FiInbox className="text-[28px]" /> Hộp thư
         </Link>
 
         <Link to="/upload" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/upload')}`}>
@@ -50,7 +71,6 @@ const Sidebar = () => {
           <Link to="/library" className={`flex items-center gap-3 hover:text-white transition-colors ${isActive('/library')}`}>
             <BiLibrary className="text-[28px]" /> Thư viện
           </Link>
-          {/* ---> BỔ SUNG CHO TUÂN: Gắn sự kiện onClick bật Modal <--- */}
           <button onClick={() => setIsCreateModalOpen(true)} className="hover:text-white hover:bg-spotify-highlight p-2 rounded-full transition-colors" title="Tạo playlist mới">
             <FiPlus className="text-xl" />
           </button>
@@ -66,30 +86,43 @@ const Sidebar = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-white">Bài hát đã thích</span>
-              <span className="text-sm text-spotify-subtext">Danh sách phát • 168 bài hát</span>
+              <span className="text-sm text-spotify-subtext">Danh sách phát • Tự động</span>
             </div>
           </div>
 
-          {/* Danh sách Playlist giả định */}
+          {/* ---> ĐÃ SỬA: Danh sách Playlist thật từ CSDL <--- */}
           <ul className="flex flex-col">
-            {[1, 2, 3].map((item) => (
-              <li key={item} className="flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md cursor-pointer transition-colors">
-                <div className="w-12 h-12 bg-spotify-elevated rounded flex-shrink-0 flex items-center justify-center text-spotify-subtext">
-                  ♪
+            {playlists.map((playlist) => (
+              <li key={playlist.id} className="flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md transition-colors group">
+                
+                {/* Ảnh bìa Playlist */}
+                <div className="w-12 h-12 bg-spotify-elevated rounded flex-shrink-0 flex items-center justify-center text-spotify-subtext overflow-hidden shadow">
+                  {playlist.coverImageUrl ? (
+                    <img src={playlist.coverImageUrl} alt={playlist.name} className="w-full h-full object-cover" />
+                  ) : (
+                    "♪"
+                  )}
                 </div>
-                {/* // Thay đổi của Hiếu: Sửa lỗi thẻ đóng /li sang /div ở cuối khối map này */}
-                <div className="flex flex-col overflow-hidden">
-                  <span className="font-semibold text-white truncate">Playlist #{item}</span>
-                  <span className="text-sm text-spotify-subtext truncate">Danh sách phát • TuneVault</span>
+                
+                {/* Thông tin Playlist */}
+                <div className="flex flex-col overflow-hidden w-full">
+                  <Link to={`/playlist/${playlist.id}`} className="font-semibold text-white truncate hover:underline block">
+                    {playlist.name}
+                  </Link>
+                  <span className="text-sm text-spotify-subtext truncate">
+                    Danh sách phát • {playlist.totalTracks || 0} bài
+                  </span>
                 </div>
+                
               </li>
             ))}
           </ul>
+          {/* ---> END: Danh sách Playlist thật từ CSDL <--- */}
         </div>
       </div>
       {/* ---> END: ĐÂY LÀ BOX 2: THƯ VIỆN & PLAYLIST <--- */}
       
-      {/* ---> BỔ SUNG CHO TUÂN: Hiển thị Modal tạo Playlist <--- */}
+      {/* Hiển thị Modal tạo Playlist */}
       {isCreateModalOpen && (
           <CreatePlaylistModal 
               onClose={() => setIsCreateModalOpen(false)} 
@@ -97,6 +130,7 @@ const Sidebar = () => {
                   setIsCreateModalOpen(false);
                   // Reload lại trang Library nếu user đang ở trang đó
                   if (location.pathname === '/library') window.location.reload();
+                  // Sẽ tốt hơn nếu bạn có context quản lý reload playlist chung, nhưng gọi window reload tạm thời cũng được
               }} 
           />
       )}
@@ -105,4 +139,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-// ---> END: ĐÂY LÀ PHẦN SIDEBAR TRÁI (CHIA 2 BOX) <---

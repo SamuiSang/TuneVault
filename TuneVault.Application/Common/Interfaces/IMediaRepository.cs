@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 namespace TuneVault.Application.Common.Interfaces.Repositories;
 
 /// <summary>
@@ -62,6 +65,7 @@ public interface IMediaRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Danh sách media</returns>
     Task<List<GetMediaResponse>> GetMediaByAlbumAsync(Guid albumId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);
 }
 
 /// <summary>
