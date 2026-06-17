@@ -87,7 +87,6 @@ const Home = () => {
                     <FollowButton targetId={item.ownerId} />
                   </div>
                 </div>
-
               </div>
             ))}
           </div>

@@ -6,7 +6,7 @@ using TuneVault.Application.Features.Playlist.Commands.AddTrackToPlaylist;
 using TuneVault.Application.Features.Playlist.Commands.CreatePlaylist;
 using TuneVault.Application.Features.Playlist.Commands.DeletePlaylist;
 using TuneVault.Application.Features.Playlist.Commands.RemoveTrackFromPlaylist;
-using TuneVault.Application.Features.Playlist.Commands.ShareMedia;
+using TuneVault.Application.Features.Media.Commands;
 using TuneVault.Application.Features.Playlist.Commands.UpdatePlaylist;
 using TuneVault.Application.Features.Playlist.Queries.GetPlaylistDetail;
 using TuneVault.Application.Features.Playlist.Queries.GetSharedMedia;
@@ -25,10 +25,7 @@ public class PlaylistsController : ControllerBase
     {
         _mediator = mediator;
     }
-
-    /// <summary>
     /// Tạo playlist mới
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreatePlaylist(
         [FromBody] CreatePlaylistCommand command,
@@ -39,9 +36,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Cập nhật playlist
-    /// </summary>
     [HttpPut("{playlistId:guid}")]
     public async Task<IActionResult> UpdatePlaylist(
         Guid playlistId,
@@ -55,9 +50,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Xóa playlist
-    /// </summary>
     [HttpDelete("{playlistId:guid}")]
     public async Task<IActionResult> DeletePlaylist(
         Guid playlistId,
@@ -70,9 +63,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Chi tiết playlist
-    /// </summary>
     [HttpGet("{playlistId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetPlaylistDetail(
@@ -86,9 +77,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Danh sách playlist của user
-    /// </summary>
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetUserPlaylists(
         string userId,
@@ -101,9 +90,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Thêm bài hát vào playlist
-    /// </summary>
     [HttpPost("{playlistId:guid}/tracks/{mediaId:guid}")]
     public async Task<IActionResult> AddTrack(
         Guid playlistId,
@@ -137,9 +124,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Chia sẻ media hoặc playlist
-    /// </summary>
     [HttpPost("share")]
     public async Task<IActionResult> ShareMedia(
         [FromBody] ShareMediaCommand command,
@@ -150,9 +135,7 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
     /// Danh sách nội dung được chia sẻ với tôi
-    /// </summary>
     [HttpGet("shared-with-me/{userId}")]
     public async Task<IActionResult> GetSharedWithMe(
         string userId,

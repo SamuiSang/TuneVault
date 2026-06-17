@@ -6,9 +6,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using TuneVault.Application.Features.Media.Commands;
 using TuneVault.Application.Features.Media.Queries;
+using TuneVault.Application.Common.Interfaces.Repositories;
 
 namespace TuneVault.API.Controllers
 {
@@ -17,15 +19,14 @@ namespace TuneVault.API.Controllers
         public required string Title { get; set; }
         public required string Type { get; set; }
         public required int Duration { get; set; }
-        public string? OwnerId { get; set; } // OwnerId có thể bỏ qua, backend sẽ lấy từ JWT
+        public string? OwnerId { get; set; } 
         public Guid? AlbumId { get; set; }
         public required IFormFile File { get; set; }
     }
 
-    // Class hứng dữ liệu từ Frontend gửi lên cho API Share
     public class ShareMediaApiRequest
     {
-        public string? SenderId { get; set; } // Không bắt buộc, backend sẽ lấy SenderId từ JWT
+        public string? SenderId { get; set; } 
         public required string ReceiverId { get; set; }
         public Guid? MediaItemId { get; set; }
         public Guid? PlaylistId { get; set; }
@@ -55,13 +56,11 @@ namespace TuneVault.API.Controllers
                 return Unauthorized(new { success = false, message = "Không tìm thấy thông tin người dùng từ token." });
             }
 
-            // Đã sửa lại logic check File bị null
             if (request.File == null || request.File.Length == 0)
             {
                 return BadRequest(new { success = false, message = "Vui lòng chọn file để upload!" });
             }
 
-            // 1. Kiểm tra định dạng (Chỉ cho phép mp3, wav, mp4)
             var allowedExtensions = new[] { ".mp3", ".wav", ".mp4" };
             var extension = Path.GetExtension(request.File.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
@@ -69,7 +68,6 @@ namespace TuneVault.API.Controllers
                 return BadRequest(new { success = false, message = "Định dạng không hợp lệ! Chỉ hỗ trợ .mp3, .wav, .mp4" });
             }
 
-            // 2. Kiểm tra dung lượng (Giới hạn 50MB)
             var maxFileSize = 50 * 1024 * 1024; // 50MB
             if (request.File.Length > maxFileSize)
             {
@@ -83,7 +81,7 @@ namespace TuneVault.API.Controllers
                 Title = request.Title,
                 Type = request.Type,
                 Duration = request.Duration,
-                OwnerId = ownerId, // Lấy OwnerId trực tiếp từ JWT để tránh spoof
+                OwnerId = ownerId, 
                 AlbumId = request.AlbumId,
                 FileName = request.File.FileName,
                 FileStream = fileStream
@@ -94,7 +92,6 @@ namespace TuneVault.API.Controllers
             return Ok(new { success = true, data = resultId, message = "Upload file thành công!" });
         }
 
-        // ---> ĐÂY LÀ ENDPOINT SHARE MEDIA VỪA LÀM <---
         [Authorize]
         [HttpPost("share")]
         public async Task<IActionResult> ShareMedia([FromBody] ShareMediaApiRequest request)
@@ -128,10 +125,15 @@ namespace TuneVault.API.Controllers
 
             var resultId = await _mediator.Send(command);
 
+            // Tinh chỉnh kết quả check spam từ handler trả về Guid.Empty
+            if (resultId == Guid.Empty)
+            {
+                return BadRequest(new { success = false, message = "Bạn đã chia sẻ bài hát này gần đây rồi. Vui lòng không spam!" });
+            }
+
             return Ok(new { success = true, data = resultId, message = "Chia sẻ thành công, đã lưu vào hộp thư!" });
         }
 
-        // ---> ENDPOINT UPLOAD HÌNH ẢNH (Avatar, Ảnh Bìa...) MỚI THÊM <---
         [HttpPost("upload-image")]
         public async Task<IActionResult> UploadImage(IFormFile file, [FromServices] TuneVault.Application.Common.Interfaces.ICloudStorageService cloudStorageService)
         {
@@ -140,7 +142,6 @@ namespace TuneVault.API.Controllers
                 return BadRequest(new { success = false, message = "Vui lòng chọn ảnh!" });
             }
 
-            // Kiểm tra định dạng
             var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".webp" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
@@ -151,7 +152,6 @@ namespace TuneVault.API.Controllers
             try
             {
                 using var fileStream = file.OpenReadStream();
-                // Gọi thẳng vào hàm xử lý Image, nó sẽ tự động đưa vào thư mục 'tunevault/images'
                 var imageUrl = await cloudStorageService.UploadImageAsync(fileStream, file.FileName);
                 
                 return Ok(new { success = true, data = imageUrl, message = "Upload ảnh thành công!" });
@@ -170,27 +170,34 @@ namespace TuneVault.API.Controllers
             return Ok(result);
         }
 
-        // Hỗ trợ Streaming và Range Header của Hiếu
+        // 🚀 ĐOẠN ĐÃ ĐƯỢC TỐI ƯU HÓA HOÀN TOÀN:
         [HttpGet("{id}/stream")]
-        public async Task<IActionResult> StreamMedia(Guid id, [FromServices] TuneVault.Application.Common.Interfaces.Repositories.IMediaRepository mediaRepository)
+        public async Task<IActionResult> StreamMedia(Guid id, [FromServices] IMediaRepository mediaRepository, CancellationToken cancellationToken)
         {
+            // 1. Gọi Repo lấy trực tiếp chuỗi link lưu trong DB ra
             var filePath = await mediaRepository.GetMediaFilePathAsync(id);
+            
             if (string.IsNullOrEmpty(filePath))
-                return NotFound(new { success = false, message = "Không tìm thấy file media." });
-
-            // Nếu filePath là URL từ Cloudinary (bắt đầu bằng http hoặc https) thì Redirect thẳng đến URL đó
-            if (filePath.StartsWith("http://") || filePath.StartsWith("https://"))
             {
-                return Redirect(filePath);
+                return NotFound(new { success = false, message = "Không tìm thấy file media yêu cầu." });
             }
 
+            // 2. Nếu là URL Cloudinary -> Trả thẳng JSON chứa link về cho Frontend tự tải/stream trực tiếp.
+            // Điều này giải phóng hoàn toàn băng thông cho Server Backend của bạn!
+            if (filePath.StartsWith("http://") || filePath.StartsWith("https://"))
+            {
+                return Ok(new { success = true, url = filePath });
+            }
+
+            // 3. Phương án dự phòng (Fallback): Nếu vẫn còn file vật lý cục bộ cũ
             var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
 
             if (!System.IO.File.Exists(physicalPath))
+            {
                 return NotFound(new { success = false, message = "File vật lý không tồn tại trên server." });
+            }
 
             var contentType = filePath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ? "video/mp4" : "audio/mpeg";
-
             return PhysicalFile(physicalPath, contentType, enableRangeProcessing: true);
         }
     }

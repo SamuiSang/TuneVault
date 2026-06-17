@@ -177,4 +177,17 @@ public class PlaylistRepository : IPlaylistRepository
 
         return playlist;
     }
+    public async Task<TuneVault.Domain.Entities.Playlist?> GetByIdAsync(Guid playlistId, CancellationToken cancellationToken = default)
+    {
+        // 1. Đổi từ 'Playlists' thành 'Playlist' cho trùng khớp với tên bảng của nhóm
+        const string sql = "SELECT * FROM Playlist WHERE Id = @PlaylistId;";
+        
+        // 2. Ép kiểu trả về chuẩn Entity gốc để Handler lấy được thuộc tính .OwnerId
+        // 3. Sử dụng biến '_db' đúng định nghĩa ở đầu file của nhóm bạn
+        return await _db.QueryFirstOrDefaultAsync<TuneVault.Domain.Entities.Playlist>(new CommandDefinition(
+            sql, 
+            new { PlaylistId = playlistId }, 
+            cancellationToken: cancellationToken
+        ));
+    }
 }

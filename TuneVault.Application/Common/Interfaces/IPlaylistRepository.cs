@@ -25,9 +25,8 @@ public interface IPlaylistRepository
 
     // Playlist Queries
 
-    Task<PlaylistDetailDto?> GetPlaylistDetailAsync(
-        Guid playlistId);
+    Task<PlaylistDetailDto?> GetPlaylistDetailAsync(Guid playlistId);
 
-    Task<IEnumerable<PlaylistDto>> GetUserPlaylistAsync(
-        string userId);
+    Task<IEnumerable<PlaylistDto>> GetUserPlaylistAsync(string userId);
+    Task<Playlist?> GetByIdAsync(Guid playlistId, CancellationToken cancellationToken = default);
 }
