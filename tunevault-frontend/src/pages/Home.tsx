@@ -60,12 +60,12 @@ const Home = () => {
               className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group relative"
             >
               <div className="relative group mb-4">
-                <img 
-                  src={item.thumbnailUrl || item.thumbnailUrl || 'default-cover.png'} 
-                  alt={item.title} 
+                <img
+                  src={item.thumbnailUrl || item.thumbnailUrl || 'default-cover.png'}
+                  alt={item.title}
                   className="w-full aspect-square object-cover object-center rounded-md shadow-md bg-spotify-elevated"
                 />
-                
+
                 <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-[0_8px_8px_rgba(0,0,0,0.3)] hover:scale-105 text-black z-10">
                   <FaPlay className="ml-1 text-lg" />
                 </button>
@@ -75,7 +75,7 @@ const Home = () => {
               <h3 className="font-medium text-[13px] mb-1.5 line-clamp-2" title={item.title}>
                 {item.title}
               </h3>
-              
+
               <div className="flex items-center justify-between mt-1">
                 {/* Đổi max-w-[60%] thành w-full để tên Artist hiển thị rộng rãi, tận dụng khoảng trống sau khi xóa nút follow */}
                 <p className="text-xs text-spotify-subtext truncate w-full">

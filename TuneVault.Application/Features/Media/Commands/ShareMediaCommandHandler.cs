@@ -1,51 +1,75 @@
-﻿using MediatR;
+using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using TuneVault.Application.Common.Interfaces.Repositories;
+using TuneVault.Application.Common.Interfaces;
 
 namespace TuneVault.Application.Features.Media.Commands
 {
     public class ShareMediaCommandHandler : IRequestHandler<ShareMediaCommand, Guid>
     {
         private readonly IMediaShareRepository _mediaShareRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly INotificationService _notificationService;
 
-        public ShareMediaCommandHandler(IMediaShareRepository mediaShareRepository)
+        public ShareMediaCommandHandler(IMediaShareRepository mediaShareRepository, IUserRepository userRepository, INotificationService notificationService)
         {
             _mediaShareRepository = mediaShareRepository;
+            _userRepository = userRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<Guid> Handle(ShareMediaCommand request, CancellationToken cancellationToken)
         {
-            // 🌟 1. CHỐNG SPAM: Kiểm tra xem trong vòng 24h qua đã gửi bài này cho người này chưa
-            // (Bạn check xem trong IMediaShareRepository nhóm có sẵn hàm check tương tự chưa, 
-            // nếu chưa có thì có thể nhờ bạn viết Repo bổ sung một hàm dạng Bool giống dưới đây nhé)
+            // 🌟 1. TÌM ID TỪ USERNAME (Lưu vào biến receiverId)
+            var receiverId = await _userRepository.GetIdByUsernameAsync(request.ReceiverUsername, cancellationToken);
+            
+            // Nếu không tìm thấy (chuỗi rỗng), báo lỗi
+            if (string.IsNullOrEmpty(receiverId))
+            {
+                throw new ArgumentException($"Người nhận '{request.ReceiverUsername}' không tồn tại trong hệ thống.");
+            }
+
+            // 🌟 2. CHỐNG SPAM: Truyền biến receiverId vừa tìm được vào đây
             bool isSpam = await _mediaShareRepository.HasSharedInLast24HoursAsync(
                 request.SenderId, 
-                request.ReceiverId, 
+                receiverId, // Dùng biến cục bộ, KHÔNG có chữ "request." ở trước
                 request.MediaItemId, 
                 cancellationToken
             );
 
-            // Nếu phát hiện spam, trả về Guid.Empty (hoặc throw lỗi tùy gu của nhóm) 
-            // để Frontend biết và không ghi nhận lượt chia sẻ mới
             if (isSpam)
             {
                 return Guid.Empty; 
             }
 
-            // 2. Nếu không spam -> Tiếp tục luồng khởi tạo Request cũ của nhóm bạn
+            // 🌟 3. LƯU VÀO DATABASE
             var repoRequest = new CreateMediaShareRequest(
                 request.SenderId,
-                request.ReceiverId,
+                receiverId, // Dùng biến cục bộ, KHÔNG có chữ "request." ở trước
                 request.MediaItemId,
                 request.PlaylistId
             );
 
-            // 3. Gọi Repository xử lý lưu DB + tạo Notification thông qua Transaction giống hệt cũ
+            // Gọi Repository xử lý lưu DB + tạo Notification
             var shareId = await _mediaShareRepository.CreateMediaShareAsync(repoRequest, cancellationToken);
 
-            // Trả về ID của lượt chia sẻ
+            // 🌟 4. GỬI NOTIFICATION QUA SIGNALR
+            await _notificationService.SendNotificationToUserAsync(
+                receiverId,
+                "MediaShare",
+                new
+                {
+                    ShareId = shareId,
+                    SenderId = request.SenderId,
+                    MediaItemId = request.MediaItemId,
+                    PlaylistId = request.PlaylistId,
+                    Message = $"Bạn có một bài hát mới được chia sẻ!"
+                },
+                cancellationToken
+            );
+
             return shareId;
         }
     }

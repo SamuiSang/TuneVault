@@ -9,13 +9,13 @@ interface ShareModalProps {
 }
 
 const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose }) => {
-    const [receiverId, setReceiverId] = useState('');
+    const [receiverUsername, setReceiverUsername] = useState('');
     const [isSharing, setIsSharing] = useState(false);
 
     const handleShare = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!receiverId.trim()) {
-            toast.warning('Vui lòng nhập ID người nhận!');
+        if (!receiverUsername.trim()) {
+            toast.warning('Vui lòng nhập Username người nhận!');
             return;
         }
 
@@ -23,7 +23,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
 
         try {
             const response = await api.post('/media/share', {
-                receiverId,
+                receiverUsername: receiverUsername,
                 mediaItemId: mediaId
             });
 
@@ -33,9 +33,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
             } else {
                 toast.error(response.data?.message || 'Có lỗi xảy ra khi chia sẻ!');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Lỗi share nhạc:', error);
-            toast.error('Không kết nối được server!');
+            const errorMessage = error.response?.data?.message || 'Không kết nối được server!';
+            toast.error(errorMessage);
         } finally {
             setIsSharing(false);
         }
@@ -50,9 +51,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
                 <form onSubmit={handleShare}>
                     <input
                         type="text"
-                        placeholder="Nhập User ID của người nhận..."
-                        value={receiverId}
-                        onChange={(e) => setReceiverId(e.target.value)}
+                        placeholder="Nhập Username của người nhận..."
+                        value={receiverUsername}
+                        onChange={(e) => setReceiverUsername(e.target.value)}
                         className="w-full bg-white/10 p-3 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#1ed760] mb-4"
                         required
                     />

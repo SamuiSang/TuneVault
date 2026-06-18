@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace TuneVault.Application.Features.Playlist.DTOs
 {
     public class SharedMediaDto
@@ -8,6 +8,7 @@ namespace TuneVault.Application.Features.Playlist.DTOs
         public string Title { get; set; }
         public string Type { get; set; }
         public string FilePath { get; set; }
+        public string ThumbnailUrl { get; set; }
         public string SenderName { get; set; }
         public DateTime SharedAt { get; set; }
     }

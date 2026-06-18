@@ -33,7 +33,7 @@ const PlayerBar = () => {
           {currentTrack ? (
             <>
               <img 
-                src={currentTrack.thumbnailUrl} 
+                src={currentTrack.thumbnailUrl || 'default-cover.png'} 
                 alt="cover" 
                 className="w-14 h-14 object-cover rounded shadow"
               />

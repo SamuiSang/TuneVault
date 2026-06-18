@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +27,7 @@ namespace TuneVault.API.Controllers
     public class ShareMediaApiRequest
     {
         public string? SenderId { get; set; } 
-        public required string ReceiverId { get; set; }
+        public required string ReceiverUsername { get; set; }
         public Guid? MediaItemId { get; set; }
         public Guid? PlaylistId { get; set; }
     }
@@ -105,9 +105,9 @@ namespace TuneVault.API.Controllers
                 return Unauthorized(new { success = false, message = "Không tìm thấy thông tin người gửi từ token." });
             }
 
-            if (string.IsNullOrWhiteSpace(request.ReceiverId))
+            if (string.IsNullOrWhiteSpace(request.ReceiverUsername))
             {
-                return BadRequest(new { success = false, message = "ReceiverId là bắt buộc." });
+                return BadRequest(new { success = false, message = "Username người nhận là bắt buộc." });
             }
 
             if (request.MediaItemId == null && request.PlaylistId == null)
@@ -118,7 +118,7 @@ namespace TuneVault.API.Controllers
             var command = new ShareMediaCommand
             {
                 SenderId = senderId,
-                ReceiverId = request.ReceiverId,
+                ReceiverUsername = request.ReceiverUsername,
                 MediaItemId = request.MediaItemId,
                 PlaylistId = request.PlaylistId
             };

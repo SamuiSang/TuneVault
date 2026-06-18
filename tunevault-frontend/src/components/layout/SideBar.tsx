@@ -46,9 +46,6 @@ const Sidebar = () => {
           <FiHome className="text-[28px]" /> Trang chủ
         </Link>
 
-        <Link to="/search" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/search')}`}>
-          <FiSearch className="text-[28px]" /> Tìm kiếm
-        </Link>
 
         <Link to="/library" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/library')}`}>
           <BiLibrary className="text-[28px]" /> Thư viện

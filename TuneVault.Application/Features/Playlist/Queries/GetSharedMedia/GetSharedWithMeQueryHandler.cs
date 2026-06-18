@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
@@ -18,7 +18,7 @@ namespace TuneVault.Application.Features.Playlist.Queries.GetSharedMedia
         public async Task<BaseResponse<IEnumerable<SharedMediaDto>>> Handle(GetSharedWithMeQuery request, CancellationToken cancellationToken)
         {
             var sql = @"
-                SELECT ms.Id AS ShareId, m.Id AS MediaId, m.Title, m.Type, m.FilePath, u.UserName AS SenderName, ms.SharedAt
+                SELECT ms.Id AS ShareId, m.Id AS MediaId, m.Title, m.Type, m.FilePath, m.ThumbnailUrl, u.UserName AS SenderName, ms.SharedAt
                 FROM MediaShare ms
                 INNER JOIN MediaItem m ON ms.MediaItemId = m.Id
                 INNER JOIN AppUser u ON ms.SenderId = u.Id

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   searchMedia,
   searchArtists,
@@ -9,7 +10,8 @@ import AddTrackModal from "../components/AddTrackModal";
 import { FiPlus } from "react-icons/fi";
 
 export default function Search() {
-  const [keyword, setKeyword] = useState("");
+  const [searchParams] = useSearchParams();
+  const keyword = searchParams.get('q') || '';
 
   const [media, setMedia] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
@@ -18,43 +20,44 @@ export default function Search() {
   // ---> BỔ SUNG CHO TUÂN: State quản lý modal thêm bài hát <---
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
 
-  const handleSearch = async () => {
-    if (!keyword.trim()) return;
+  useEffect(() => {
+    const handleSearch = async () => {
+      if (!keyword.trim()) {
+        setMedia([]);
+        setArtists([]);
+        setPlaylists([]);
+        return;
+      }
 
-    try {
-      const [mediaRes, artistRes, playlistRes] = await Promise.all([
-        searchMedia(keyword),
-        searchArtists(keyword),
-        searchPlaylists(keyword)
-      ]);
+      try {
+        const [mediaRes, artistRes, playlistRes] = await Promise.all([
+          searchMedia(keyword),
+          searchArtists(keyword),
+          searchPlaylists(keyword)
+        ]);
 
-      setMedia(mediaRes);
-      setArtists(artistRes);
-      setPlaylists(playlistRes);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        setMedia(mediaRes);
+        setArtists(artistRes);
+        setPlaylists(playlistRes);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      handleSearch();
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(timeoutId);
+  }, [keyword]);
 
   return (
     <div className="p-6 text-white pb-24">
-      <h1 className="text-3xl font-bold mb-4">Search</h1>
-
-      <div className="flex gap-2 mb-6">
-        <input
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Search songs, artists, playlists..."
-          className="flex-1 p-3 rounded bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#1ed760]"
-        />
-
-        <button
-          onClick={handleSearch}
-          className="bg-green-500 px-6 py-2 rounded text-black font-bold hover:scale-105 transition-transform"
-        >
-          Search
-        </button>
-      </div>
+      {keyword ? (
+        <h1 className="text-3xl font-bold mb-6">Kết quả cho "{keyword}"</h1>
+      ) : (
+        <h1 className="text-3xl font-bold mb-6">Tìm kiếm nội dung yêu thích của bạn</h1>
+      )}
 
       <div className="space-y-8">
         <section>

@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { FiHome, FiSearch, FiInbox } from 'react-icons/fi';
 
 const Topbar = () => {
   // Khởi tạo hook điều hướng và Auth
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, user, logout } = useAuth();
   
   // State quản lý việc đóng/mở Dropdown
@@ -29,18 +32,50 @@ const Topbar = () => {
     };
   }, []);
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val) {
+      navigate(`/search?q=${encodeURIComponent(val)}`);
+    } else {
+      navigate('/search');
+    }
+  };
+
   return (
-    <header className="h-16 bg-spotify-base flex items-center justify-between px-6 sticky top-0 z-10">
-      {/* ---> GO FOWARD / GO BACK <--- */}
-      <div className="flex items-center gap-2">
-        <button className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-spotify-subtext cursor-not-allowed">
-          &lt;
+    <header className="h-16 bg-spotify-base flex items-center justify-between px-6 sticky top-0 z-10 gap-4">
+      {/* ---> LEFT PORTION: HOME & SEARCH <--- */}
+      <div className="flex items-center gap-2 flex-1 max-w-2xl">
+        {/* Nút Home */}
+        <button 
+          onClick={() => navigate('/')}
+          className="w-12 h-12 rounded-full bg-[#1F1F1F] hover:bg-[#2A2A2A] flex items-center justify-center text-spotify-subtext hover:text-white transition-colors flex-shrink-0"
+          title="Home"
+        >
+          <FiHome className="text-[24px]" />
         </button>
-        <button className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-spotify-subtext cursor-not-allowed">
-          &gt;
-        </button>
+
+        {/* Thanh Search */}
+        <div 
+          onClick={() => {
+            if (location.pathname !== '/search') {
+              navigate('/search');
+            }
+          }}
+          className="flex-1 flex items-center bg-[#1F1F1F] hover:bg-[#2A2A2A] hover:ring-1 hover:ring-white/20 focus-within:ring-2 focus-within:ring-white focus-within:bg-[#2A2A2A] rounded-full h-12 px-3 transition-all cursor-text"
+        >
+          <FiSearch className="text-spotify-subtext hover:text-white text-[24px] ml-1 mr-3 flex-shrink-0 cursor-pointer" />
+          <input 
+            type="text" 
+            value={searchParams.get('q') || ''}
+            onChange={handleSearchChange}
+            placeholder="What do you want to play?" 
+            className="bg-transparent border-none outline-none text-white w-full placeholder-spotify-subtext font-medium text-base h-full"
+          />
+          <div className="border-l border-white/20 pl-3 ml-2 flex items-center h-6 flex-shrink-0">
+             <FiInbox className="text-spotify-subtext hover:text-white text-xl cursor-pointer" title="Browse" />
+          </div>
+        </div>
       </div>
-      {/* ---> GO FOWARD / GO BACK <--- */}
 
       {/* --->  NÚT ĐĂNG NHẬP ĐĂNG KÝ HOẶC THÔNG TIN USER <--- */}
       <div className="flex items-center gap-4 text-spotify-text text-sm font-bold">
