@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiHome, FiSearch, FiInbox } from 'react-icons/fi';
+import { FiHome, FiSearch, FiInbox, FiBell } from 'react-icons/fi';
+import {
+  getUnreadNotifications,
+  markAllNotificationsAsRead,
+} from '../../services/notificationService';
 
 const Topbar = () => {
   // Khởi tạo hook điều hướng và Auth
@@ -12,6 +16,9 @@ const Topbar = () => {
   
   // State quản lý việc đóng/mở Dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // -----> BADGE SỐ LƯỢNG THÔNG BÁO CHƯA ĐỌC <-----
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
@@ -31,6 +38,34 @@ const Topbar = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Gọi API lấy số lượng thông báo chưa đọc mỗi khi user thay đổi (login/logout)
+  useEffect(() => {
+    if (!user?.id) {
+      setUnreadCount(0);
+      return;
+    }
+    const fetchUnreadCount = async () => {
+      try {
+        const unread = await getUnreadNotifications(user.id);
+        setUnreadCount(unread.length);
+      } catch {
+        // Không làm gì nếu lỗi (user chưa có thông báo)
+      }
+    };
+    void fetchUnreadCount();
+  }, [user?.id]);
+
+  // Khi user click chuông: đánh dấu tất cả đã đọc và reset badge về 0
+  const handleBellClick = async () => {
+    if (!user?.id || unreadCount === 0) return;
+    setUnreadCount(0); // Cập nhật UI ngay lập tức (optimistic update)
+    try {
+      await markAllNotificationsAsRead(user.id);
+    } catch {
+      // Nếu lỗi, có thể fetch lại để đồng bộ
+    }
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -80,8 +115,24 @@ const Topbar = () => {
       {/* --->  NÚT ĐĂNG NHẬP ĐĂNG KÝ HOẶC THÔNG TIN USER <--- */}
       <div className="flex items-center gap-4 text-spotify-text text-sm font-bold">
         {isAuthenticated ? (
-          // HIỆN THỊ KHI ĐÃ ĐĂNG NHẬP (AVATAR + DROPDOWN)
-          <div className="relative" ref={dropdownRef}>
+          // HIỆN THỊ KHI ĐÃ ĐĂNG NHẬP (ICON CHUÔNG + AVATAR + DROPDOWN)
+          <>
+            {/* -----> ICON CHUÔNG VỚI BADGE <----- */}
+            <button
+              onClick={handleBellClick}
+              title="Thông báo"
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-spotify-subtext hover:text-white hover:bg-white/10 transition-all"
+            >
+              <FiBell className="text-[20px]" />
+              {/* Badge chỉ hiện khi có thông báo chưa đọc */}
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-[3px] leading-none animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <div className="relative" ref={dropdownRef}>
             <button //AVATAR NGƯỜI DÙNG
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold hover:scale-105 transition-transform ${user?.avatarUrl ? 'bg-transparent' : 'bg-pink-500 text-black'}`}
@@ -126,6 +177,7 @@ const Topbar = () => {
               </div>
             )}
           </div>
+          </> // đóng fragment của phần đã đăng nhập
         ) : (
           // Hiển thị (đăng ký / đăng nhập) khi CHƯA ĐĂNG NHẬP
           <>
