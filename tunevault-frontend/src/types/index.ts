@@ -1,26 +1,20 @@
-// src/types/index.ts
-
 export interface AppUser {
   id: string; // Kế thừa từ IdentityUser
   userName: string;
   email: string;
-  bio?: string; // Tương đương string? trong C#
+  displayName?: string; 
+  bio?: string; 
   avatarUrl?: string;
+  isArtist: boolean; 
 }
-
-export interface Artist {
-  id: string;
-  name: string;
-  bio?: string;
-  avatarUrl?: string;
-}
+// Đã xóa interface Artist
 
 export interface Album {
   id: string;
   title: string;
-  releaseDate: string; // DateTime chuyển thành string (ISO format)
+  releaseDate: string; 
   coverImageUrl?: string;
-  artistId: string;
+  artistId: string; // Trỏ về AppUser.id
 }
 
 export interface MediaItem {
@@ -28,17 +22,17 @@ export interface MediaItem {
   title: string;
   thumbnailUrl?: string;
   description?: string;
-  type: 'Audio' | 'Video'; // Giúp Frontend dễ dàng rẽ nhánh hiển thị Player
-  duration: number; // int trong C#
+  type: 'Audio' | 'Video'; 
+  duration: number; 
   filePath: string;
-  albumId?: string; // Guid? trong C#
-  ownerId: string;
+  albumId?: string; 
+  ownerId: string; // Người upload (AppUser)
 }
 
 export interface Playlist {
   id: string;
   name: string;
-  isPublic: boolean; // bool trong C#
+  isPublic: boolean; 
   coverImageUrl?: string;
   ownerId: string;
 }
@@ -72,8 +66,8 @@ export interface Follow {
   id: string;
   createdAt: string;
   followerId: string;
-  followeeId?: string;
-  artistId?: string;
+  followeeId: string; // Bắt buộc trỏ về AppUser (bao gồm cả user thường và artist)
+  // Đã xóa trường artistId
 }
 
 // Bảng trung gian (Tùy chọn hiển thị ở Frontend, nhưng cứ khai báo cho đủ)
@@ -91,7 +85,7 @@ export interface Favorite {
 
 export interface MediaArtist {
   mediaItemId: string;
-  artistId: string;
+  artistId: string; // Trỏ về AppUser.id (user có isArtist = true)
 }
 // ---> Kết thúc bảng trung gian <---
 
