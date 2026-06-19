@@ -20,7 +20,7 @@ public class TokenService : ITokenService
     public string GenerateToken(AppUser user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? ""));
 
         var claims = new List<Claim>
         {
