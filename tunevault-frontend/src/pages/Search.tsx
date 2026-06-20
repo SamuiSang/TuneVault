@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   searchMedia,
@@ -7,11 +7,13 @@ import {
 } from "../services/searchService";
 // ---> BỔ SUNG CHO TUÂN: Import Modal Thêm Track <---
 import AddTrackModal from "../components/AddTrackModal";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiPlay } from "react-icons/fi";
+import { PlayerContext } from "../contexts/PlayerContext";
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const keyword = searchParams.get('q') || '';
+  const player = useContext(PlayerContext);
 
   const [media, setMedia] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
@@ -72,15 +74,25 @@ export default function Search() {
                 <p className="font-bold text-white">{item.title}</p>
                 <p className="text-sm text-spotify-subtext">{item.artistName || 'Unknown Artist'}</p>
               </div>
-              
-              {/* ---> BỔ SUNG CHO TUÂN: Nút gọi Modal <--- */}
-              <button 
-                onClick={() => setSelectedMediaId(item.id)}
-                className="opacity-0 group-hover:opacity-100 bg-[#1ed760] text-black w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-all"
-                title="Thêm vào Playlist"
-              >
-                <FiPlus className="text-xl" />
-              </button>
+              <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Nút Play */}
+                <button 
+                  onClick={() => void player?.playTrack(item)}
+                  className="bg-[#1ed760] text-black w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+                  title="Phát nhạc"
+                >
+                  <FiPlay className="text-lg ml-0.5" />
+                </button>
+
+                {/* ---> BỔ SUNG CHO TUÂN: Nút gọi Modal <--- */}
+                <button 
+                  onClick={() => setSelectedMediaId(item.id)}
+                  className="text-spotify-subtext hover:text-white border border-spotify-subtext hover:border-white w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-all"
+                  title="Thêm vào Playlist"
+                >
+                  <FiPlus className="text-xl" />
+                </button>
+              </div>
             </div>
           ))}
         </section>

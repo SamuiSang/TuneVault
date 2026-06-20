@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TuneVault.Application.Features.Search.Queries.SearchArtists;
 using TuneVault.Application.Features.Search.Queries.SearchMedia;
 using TuneVault.Application.Features.Search.Queries.SearchPlaylists;
+using TuneVault.Application.Features.Search.Queries.SearchUsers;
 
 namespace TuneVault.API.Controllers;
 
@@ -48,6 +49,18 @@ public class SearchController : ControllerBase
     {
         var result = await _mediator.Send(
             new SearchPlaylistsQuery(keyword),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet("users")]
+    public async Task<IActionResult> SearchUsers(
+        [FromQuery] string keyword,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SearchUsersQuery(keyword),
             cancellationToken);
 
         return Ok(result);

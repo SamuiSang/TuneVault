@@ -15,7 +15,7 @@ const Sidebar = () => {
   const isActive = (path: string) => location.pathname === path ? "text-white" : "text-spotify-subtext";
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  
+
   // ---> BỔ SUNG: State và logic lấy danh sách playlist <---
   const [playlists, setPlaylists] = useState<any[]>([]);
   const { user } = useAuth(); // Lấy user từ Context
@@ -24,9 +24,9 @@ const Sidebar = () => {
     const fetchPlaylists = async () => {
       // Ưu tiên lấy từ Context, dự phòng localStorage nếu Context chưa kịp update
       const userId = user?.id || localStorage.getItem('userId');
-      
+
       if (!userId) return; // Chưa đăng nhập thì không gọi API
-      
+
       try {
         const data = await getUserPlaylists(userId);
         setPlaylists(Array.isArray(data) ? data : []);
@@ -50,7 +50,7 @@ const Sidebar = () => {
         <Link to="/library" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/library')}`}>
           <BiLibrary className="text-[28px]" /> Thư viện
         </Link>
-        
+
         <Link to="/share-inbox" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/share-inbox')}`}>
           <FiInbox className="text-[28px]" /> Hộp thư
         </Link>
@@ -75,7 +75,7 @@ const Sidebar = () => {
 
         {/* Nội dung thư viện cuộn được */}
         <div className="flex-1 overflow-y-auto px-2 pb-2 custom-scrollbar">
-          
+
           {/* Nút Bài hát đã thích */}
           <div className="flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md cursor-pointer transition-colors group mb-2">
             <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-blue-300 text-white rounded shadow-sm">
@@ -91,7 +91,7 @@ const Sidebar = () => {
           <ul className="flex flex-col">
             {playlists.map((playlist) => (
               <li key={playlist.id} className="flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md transition-colors group">
-                
+
                 {/* Ảnh bìa Playlist */}
                 <div className="w-12 h-12 bg-spotify-elevated rounded flex-shrink-0 flex items-center justify-center text-spotify-subtext overflow-hidden shadow">
                   {playlist.coverImageUrl ? (
@@ -100,7 +100,7 @@ const Sidebar = () => {
                     "♪"
                   )}
                 </div>
-                
+
                 {/* Thông tin Playlist */}
                 <div className="flex flex-col overflow-hidden w-full">
                   <Link to={`/playlist/${playlist.id}`} className="font-semibold text-white truncate hover:underline block">
@@ -110,7 +110,7 @@ const Sidebar = () => {
                     Danh sách phát • {playlist.totalTracks || 0} bài
                   </span>
                 </div>
-                
+
               </li>
             ))}
           </ul>
@@ -118,18 +118,18 @@ const Sidebar = () => {
         </div>
       </div>
       {/* ---> END: ĐÂY LÀ BOX 2: THƯ VIỆN & PLAYLIST <--- */}
-      
+
       {/* Hiển thị Modal tạo Playlist */}
       {isCreateModalOpen && (
-          <CreatePlaylistModal 
-              onClose={() => setIsCreateModalOpen(false)} 
-              onSuccess={() => {
-                  setIsCreateModalOpen(false);
-                  // Reload lại trang Library nếu user đang ở trang đó
-                  if (location.pathname === '/library') window.location.reload();
-                  // Sẽ tốt hơn nếu bạn có context quản lý reload playlist chung, nhưng gọi window reload tạm thời cũng được
-              }} 
-          />
+        <CreatePlaylistModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            setIsCreateModalOpen(false);
+            // Reload lại trang Library nếu user đang ở trang đó
+            if (location.pathname === '/library') window.location.reload();
+            // Sẽ tốt hơn nếu bạn có context quản lý reload playlist chung, nhưng gọi window reload tạm thời cũng được
+          }}
+        />
       )}
     </>
   );

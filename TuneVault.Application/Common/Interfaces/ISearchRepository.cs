@@ -13,4 +13,7 @@ public interface ISearchRepository
 
     Task<IEnumerable<PlaylistSearchDto>> SearchPlaylistsAsync(
         string keyword);
+
+    Task<IEnumerable<UserSearchDto>> SearchUsersAsync(
+        string keyword);
 }
