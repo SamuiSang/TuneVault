@@ -27,10 +27,9 @@ public class SearchRepository : ISearchRepository
                 al.Title AS AlbumTitle,
                 m.ThumbnailUrl
             FROM MediaItem m
-            LEFT JOIN Artist a
-                ON a.Id = m.ArtistId
-            LEFT JOIN Album al
-                ON al.Id = m.AlbumId
+            LEFT JOIN MediaArtist ma ON ma.MediaItemId = m.Id
+            LEFT JOIN Artist a ON a.Id = ma.ArtistId
+            LEFT JOIN Album al ON al.Id = m.AlbumId
             WHERE
                 m.Title LIKE '%' + @Keyword + '%'
                 OR a.Name LIKE '%' + @Keyword + '%'
@@ -49,18 +48,17 @@ public class SearchRepository : ISearchRepository
             SELECT
                 a.Id,
                 a.Name,
-                a.Biography,
-                a.ImageUrl,
-                COUNT(m.Id) AS TotalTracks
+                a.Bio AS Biography,
+                a.AvatarUrl AS ImageUrl,
+                COUNT(ma.MediaItemId) AS TotalTracks
             FROM Artist a
-            LEFT JOIN MediaItem m
-                ON m.ArtistId = a.Id
+            LEFT JOIN MediaArtist ma ON ma.ArtistId = a.Id
             WHERE a.Name LIKE '%' + @Keyword + '%'
             GROUP BY
                 a.Id,
                 a.Name,
-                a.Biography,
-                a.ImageUrl
+                a.Bio,
+                a.AvatarUrl
             ORDER BY a.Name;";
 
         return await _db.QueryAsync<ArtistDto>(
@@ -92,6 +90,25 @@ public class SearchRepository : ISearchRepository
             ORDER BY p.Name;";
 
         return await _db.QueryAsync<PlaylistSearchDto>(
+            sql,
+            new { Keyword = keyword });
+    }
+
+    public async Task<IEnumerable<UserSearchDto>> SearchUsersAsync(string keyword)
+    {
+        const string sql = @"
+            SELECT
+                Id,
+                UserName,
+                UserName AS DisplayName,
+                AvatarUrl,
+                CAST(0 AS BIT) AS IsArtist
+            FROM AppUser
+            WHERE
+                UserName LIKE '%' + @Keyword + '%'
+            ORDER BY UserName;";
+
+        return await _db.QueryAsync<UserSearchDto>(
             sql,
             new { Keyword = keyword });
     }
