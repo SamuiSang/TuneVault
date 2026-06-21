@@ -38,4 +38,5 @@ public interface INotificationService
     /// <param name="message">Nội dung message</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task SendBroadcastMessageAsync(string message, CancellationToken cancellationToken = default);
+    Task CreateNotificationAsync(string followeeId, string v1, string v2);
 }

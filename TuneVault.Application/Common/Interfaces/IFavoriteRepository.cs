@@ -12,4 +12,5 @@ public interface IFavoriteRepository
     Task<bool> IsFavoriteAsync(string userId, Guid mediaItemId);
     Task<IEnumerable<FavoriteMediaDto>> GetUserFavoritesAsync(string userId, int pageNumber = 1, int pageSize = 10);
     Task<int> GetUserFavoritesCountAsync(string userId);
+    Task AddAsync(Favorite favorite);
 }
