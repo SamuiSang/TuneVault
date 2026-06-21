@@ -7,10 +7,10 @@ namespace TuneVault.Application.Features.Auth.Commands.UpdateProfile;
 public class UpdateProfileCommand : IRequest<bool>
 {
     public string UserId { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
 }
-
 // 2. Bộ xử lý logic (Handler)
 public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, bool>
 {
@@ -23,7 +23,6 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
 
     public async Task<bool> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
-        // Gọi xuống Repository để cập nhật DB
-        return await _userRepository.UpdateProfileAsync(request.UserId, request.Bio, request.AvatarUrl);
+        return await _userRepository.UpdateProfileAsync(request.UserId, request.DisplayName, request.Bio, request.AvatarUrl);
     }
 }

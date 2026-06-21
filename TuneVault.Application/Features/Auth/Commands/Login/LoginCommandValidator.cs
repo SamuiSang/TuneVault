@@ -6,9 +6,9 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(v => v.Email)
-            .NotEmpty().WithMessage("Email không được để trống.")
-            .EmailAddress().WithMessage("Định dạng email không hợp lệ.");
+        // Đổi v.Email thành v.EmailOrUsername
+        RuleFor(v => v.EmailOrUsername)
+            .NotEmpty().WithMessage("Tên đăng nhập hoặc email không được để trống.");
 
         RuleFor(v => v.Password)
             .NotEmpty().WithMessage("Mật khẩu không được để trống.");
