@@ -1,30 +1,24 @@
+-- DATABASE NAME: TuneVaultDb
 -- =======================================
--- 		   TẠO BẢNG
+--            TẠO BẢNG
 -- =======================================
 CREATE TABLE AppUser (
     Id NVARCHAR(450) PRIMARY KEY,
     UserName NVARCHAR(256),
     Email NVARCHAR(256),
     PasswordHash NVARCHAR(MAX),
+    DisplayName NVARCHAR(255) NULL,
     Bio NVARCHAR(MAX) NULL,
-    AvatarUrl NVARCHAR(MAX) NULL
-);
-
-CREATE TABLE Artist (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    Name NVARCHAR(255) NOT NULL,
     AvatarUrl NVARCHAR(MAX) NULL,
-    Bio NVARCHAR(MAX) NULL
+    IsArtist BIT DEFAULT 0
 );
-
-
 CREATE TABLE Album (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Title NVARCHAR(255) NOT NULL,
     ReleaseDate DATETIME2 NOT NULL,
     CoverImageUrl NVARCHAR(MAX),
-    ArtistId UNIQUEIDENTIFIER NOT NULL,
-    CONSTRAINT FK_Album_Artist FOREIGN KEY (ArtistId) REFERENCES Artist(Id)
+    ArtistId NVARCHAR(450) NOT NULL, -- Đổi kiểu dữ liệu khớp với AppUser
+    CONSTRAINT FK_Album_Artist FOREIGN KEY (ArtistId) REFERENCES AppUser(Id)
 );
 
 CREATE TABLE MediaItem (
@@ -103,29 +97,26 @@ CREATE TABLE PlayHistory (
 CREATE TABLE Follow (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     FollowerId NVARCHAR(450) NOT NULL,
-    FolloweeId NVARCHAR(450) NULL,
-    ArtistId UNIQUEIDENTIFIER NULL,
+    FolloweeId NVARCHAR(450) NOT NULL, -- Đổi thành NOT NULL, dùng chung cho cả việc follow user hay artist
+    -- Đã xóa ArtistId
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Follow_Follower FOREIGN KEY (FollowerId) REFERENCES AppUser(Id),
-    CONSTRAINT FK_Follow_Followee FOREIGN KEY (FolloweeId) REFERENCES AppUser(Id),
-    CONSTRAINT FK_Follow_Artist FOREIGN KEY (ArtistId) REFERENCES Artist(Id)
+    CONSTRAINT FK_Follow_Followee FOREIGN KEY (FolloweeId) REFERENCES AppUser(Id)
 );
 
 CREATE TABLE MediaArtist (
     MediaItemId UNIQUEIDENTIFIER NOT NULL,
-    ArtistId UNIQUEIDENTIFIER NOT NULL,
+    ArtistId NVARCHAR(450) NOT NULL, -- Đổi kiểu dữ liệu khớp với AppUser
     PRIMARY KEY (MediaItemId, ArtistId),
     CONSTRAINT FK_MediaArtist_MediaItem FOREIGN KEY (MediaItemId) REFERENCES MediaItem(Id),
-    CONSTRAINT FK_MediaArtist_Artist FOREIGN KEY (ArtistId) REFERENCES Artist(Id)
+    CONSTRAINT FK_MediaArtist_Artist FOREIGN KEY (ArtistId) REFERENCES AppUser(Id)
 );
-
 
 -- ====================================================
 --                 LẤY DỮ LIỆU BẢNG
 -- ====================================================
 select * from Album
 select * from AppUser
-select * from Artist
 select * from Favorite
 select * from Follow
 select * from MediaArtist
@@ -152,55 +143,87 @@ DELETE FROM Follow;
 DELETE FROM Playlist;
 DELETE FROM MediaItem;
 DELETE FROM Album;
-DELETE FROM Artist;
 
 -- Cuối cùng mới xóa bảng cha
 DELETE FROM AppUser;
 
 
 -- ===================================================
---                  INSERT USER MẪU
+--    INSERT USER & ARTIST MẪU (GỘP CHUNG VÀO APPUSER)
 -- ===================================================
-INSERT INTO AppUser (Id, UserName, Email, PasswordHash, Bio, AvatarUrl) VALUES
-('U001', N'user1', 'user1@gmail.com', 'AQAAAAIAAYagAAAAEHYouyDaVG3LkMiXKuZxki9rkECFJc88PvZgTUAo6Ho8JFhf9x6xQ+mbJ5WnDwADXQ==', N'Bio user 1', 'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781688873/user1_ps4dz8.jpg'),
-('U002', N'user2', 'user2@gmail.com', 'AQAAAAIAAYagAAAAEK45kDwV/h8yRB1C4Ato1rVs68eNArzNH8Zj9/M6e38eC/Shyo9i8HQwciUjN88XtA==', N'Bio user 2', 'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781689880/user2_uuspy3.jpg'),
-('U003', N'test', 'test@gmail.com', 'AQAAAAIAAYagAAAAEAScNcWEVKN+jINrr5y4yWwqXCDmvl+JO5xbOO8xtZz4XlSzPiLU/caDy7l50MiCaw==', N'Bio test user', 'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781689338/tunevault/images/Mahiru_Pout_t6cn0f.png');
-
-
--- ===================================================
---                 INSERT ARTIST MẪU
--- ===================================================
--- 1. Khai báo các biến Id cho nghệ sĩ (để lát nữa dùng lại cho Album và MediaItem)
-DECLARE @Artist1 UNIQUEIDENTIFIER = NEWID();
-DECLARE @Artist2 UNIQUEIDENTIFIER = NEWID();
-DECLARE @Artist3 UNIQUEIDENTIFIER = NEWID();
-DECLARE @Artist4 UNIQUEIDENTIFIER = NEWID();
-
--- 2. Thêm dữ liệu vào bảng Artist kèm link Cloudinary
-INSERT INTO Artist (Id, Name, AvatarUrl, Bio) VALUES
+INSERT INTO AppUser (Id, UserName, Email, PasswordHash, DisplayName, Bio, AvatarUrl, IsArtist) VALUES
+-- 1. Người dùng bình thường (IsArtist = 0)
 (
-    @Artist1, 
-    N'Sơn Tùng M-TP', 
+    'U001', 
+    N'user1', 
+    'user1@gmail.com', 
+    'AQAAAAIAAYagAAAAEHYouyDaVG3LkMiXKuZxki9rkECFJc88PvZgTUAo6Ho8JFhf9x6xQ+mbJ5WnDwADXQ==', 
+    N'Người dùng 1',
+    N'Bio user 1', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781688873/user1_ps4dz8.jpg',
+    0
+),
+(
+    'U002', 
+    N'user2', 
+    'user2@gmail.com', 
+    'AQAAAAIAAYagAAAAEK45kDwV/h8yRB1C4Ato1rVs68eNArzNH8Zj9/M6e38eC/Shyo9i8HQwciUjN88XtA==', 
+    N'Người dùng 2',
+    N'Bio user 2', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781689880/user2_uuspy3.jpg',
+    0
+),
+(
+    'U003', 
+    N'test', 
+    'test@gmail.com', 
+    'AQAAAAIAAYagAAAAEAScNcWEVKN+jINrr5y4yWwqXCDmvl+JO5xbOO8xtZz4XlSzPiLU/caDy7l50MiCaw==', 
+    N'Tài khoản Test',
+    N'Bio test user', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781689338/tunevault/images/Mahiru_Pout_t6cn0f.png',
+    0
+),
+
+-- 2. Nghệ sĩ (IsArtist = 1)
+(
+    'A001', 
+    N'sontungmtp', 
+    'sontungmtp@gmail.com', 
+    'AQAAAAIAAYagAAAAEFlBqetVfCYcNS1wnmiKtaDx3woIuvfS/6Dprqh8yC8mpdRr9wLgYcUD07XmYJ3EFQ==', 
+    N'Sơn Tùng M-TP',
+    N'Nam ca sĩ, nhạc sĩ người Việt Nam...', 
     'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690268/SonTungMTP_fccntg.jpg',
-    N'Nam ca sĩ, nhạc sĩ người Việt Nam...'
+    1
 ),
 (
-    @Artist2, 
-    N'The Weeknd', 
-    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690270/TheWeeknd_kyl73f.jpg', 
-    N'The Weeknd Bio'
+    'A002', 
+    N'theweeknd', 
+    'theweeknd@gmail.com', 
+    'AQAAAAIAAYagAAAAECZYH9JW69CJyZL4OGWsJtOzyUi07H2Gh+fKnyx+RSnbWxXXHvxLYa10ctQA+KIn7Q==', 
+    N'The Weeknd',
+    N'The Weeknd Bio', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690270/TheWeeknd_kyl73f.jpg',
+    1
 ),
 (
-    @Artist3, 
-    N'Đen Vâu', 
-    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690267/DenVau_x9q5yi.jpg', 
-    N'Rapper với những bản hit mộc mạc...'
+    'A003', 
+    N'denvau', 
+    'denvau@gmail.com', 
+    'AQAAAAIAAYagAAAAEJrMJPpEC0dQGNvrPb8zt4TTTt29b1L550hJ8U/p+FVYANIRrHNYO1iq0lX8tuqBQQ==', 
+    N'Đen Vâu',
+    N'Rapper với những bản hit mộc mạc...', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690267/DenVau_x9q5yi.jpg',
+    1
 ),
 (
-    @Artist4, 
-    N'Justin Bieber', 
-    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690269/JustinBieber_uifdqd.jpg', 
-    N'Justin Bieber Bio'
+    'A004', 
+    N'justinbieber', 
+    'justinbieber@gmail.com', 
+    'AQAAAAIAAYagAAAAEGqPOqgILcsBouthR5EuMVwmEMU2+YC1WSPuIeDIrWvLUhrT0DoQY6itg2gErJ1V+w==', 
+    N'Justin Bieber',
+    N'Justin Bieber Bio', 
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781690269/JustinBieber_uifdqd.jpg',
+    1
 );
 
 
@@ -213,41 +236,39 @@ DECLARE @Album2 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Album3 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Album4 UNIQUEIDENTIFIER = NEWID();
 
-
 INSERT INTO Album (Id, Title, ReleaseDate, CoverImageUrl, ArtistId) VALUES
 (
     @Album1, 
     N'Tuyển tập Sơn Tùng M-TP', 
     '2020-12-20', 
-    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781692239/SonTungAlbum_iwks7k.jpg', -- Dán link ảnh bìa Album
-    @Artist1 -- Thuộc về Sơn Tùng M-TP
+    'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781692239/SonTungAlbum_iwks7k.jpg', 
+    'A001' -- Sơn Tùng M-TP
 ),
 (
     @Album2, 
     N'Tuyển tập The Weeknd', 
     '2020-03-20', 
     'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781692240/TheWeekndAlbum_u1ummw.jpg', 
-    @Artist2 -- Thuộc về The Weeknd
+    'A002' -- The Weeknd
 ),
 (
     @Album3, 
     N'Tuyển tập Đen Vâu', 
     '2026-01-01', 
     'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781692236/DenVauAlbum_wzsbyj.jpg', 
-    @Artist3 -- Thuộc về Đen Vâu (ví dụ)
+    'A003' -- Đen Vâu
 ),
 (
     @Album4, 
     N'Tuyển tập Justin Bieber', 
     '2020-03-20', 
     'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781692238/JustinBieberAlbum_ixxmp0.jpg', 
-    @Artist2 -- Thuộc về Justin Bieber
+    'A004' -- Justin Bieber
 );
 
 -- =======================================================
 --    THÊM DỮ LIỆU BẢNG MEDIAITEM (BÀI HÁT & VIDEO)
 -- =======================================================
--- Khai báo biến cho MediaItem (để sau này nếu làm PlaylistTrack có thể tái sử dụng)
 DECLARE @Media1 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Media2 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Media3 UNIQUEIDENTIFIER = NEWID();
@@ -269,7 +290,6 @@ DECLARE @Media18 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Media19 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Media20 UNIQUEIDENTIFIER = NEWID();
 
-
 INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, FilePath, AlbumId, OwnerId) VALUES
 -- Dòng 1: Dành cho bản Audio (MP3)
 (
@@ -283,8 +303,6 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     @Album3, -- Thuộc Album Đen Vâu
     'U001'
 ),
-
--- Dòng 2: Dành cho bản MV (MP4)
 (
     @Media2, 
     N'Đen - hai triệu năm ft. Biên (M/V)',
@@ -293,7 +311,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     217, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690968/hai-trieu-nam_vbmfpd.mp4', 
-    @Album3, -- Thuộc Album Đen Vâu
+    @Album3,
     'U001'
 ),
 (
@@ -304,7 +322,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     401, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692062/mang-tien-ve-cho-me_jmp48m.mp3', 
-    @Album3, -- Thuộc Album Đen Vâu
+    @Album3,
     'U001'
 ),
 (
@@ -315,7 +333,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     401, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690866/mang-tien-ve-cho-me_msd2md.mp4', 
-    @Album3, -- Thuộc Album Đen Vâu
+    @Album3,
     'U001'
 ),
 (
@@ -326,7 +344,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     252, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692074/tron-tim_fqhvel.mp3', 
-    @Album3, -- Thuộc Album Đen Vâu
+    @Album3,
     'U001'
 ),
 (
@@ -337,7 +355,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     252, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690911/tron-tim_ty7sj8.mp4', 
-    @Album3, -- Thuộc Album Đen Vâu
+    @Album3,
     'U001'
 ),
 (
@@ -348,18 +366,18 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     215, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692063/co-chac-yeu-la-day_e75vpv.mp3', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
     @Media8, 
     N'SƠN TÙNG M-TP | CÓ CHẮC YÊU LÀ ĐÂY | (M/V)',
     'https://res.cloudinary.com/dgwvj1a0i/image/upload/v1781703150/co-chac-yeu-la-day-mp4_krapeb.webp',
-    N'Bản MV đầy đủ hình ảnh', 
+    N'Bản MV đầy hình ảnh', 
     'Video',
     215, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690858/co-chac-yeu-la-day_o6vips.mp4', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -370,7 +388,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     234, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692067/come-my-way_tvgnof.mp3', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -381,7 +399,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     234, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690912/come-my-way_snxjig.mp4', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -392,7 +410,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     273, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692057/chay-ngay-di_qomjtn.mp3', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -403,7 +421,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     273, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690888/chay-ngay-di_sgnfph.mp4', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -414,7 +432,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     272, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692068/lac-troi_dygsfm.mp3', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -425,7 +443,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     272, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690970/lac-troi_ycg5hw.mp4', 
-    @Album1, -- Thuộc Album Sơn Tùng
+    @Album1,
     'U001'
 ),
 (
@@ -436,7 +454,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     219, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692056/baby_ddj9ob.mp3', 
-    @Album4, -- Thuộc Album Justin Bieber
+    @Album4,
     'U002'
 ),
 (
@@ -447,7 +465,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     219, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690943/baby_bvnawx.mp4', 
-    @Album4, -- Thuộc Album Justin Bieber
+    @Album4,
     'U002'
 ),
 (
@@ -458,7 +476,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     205, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692062/sorry_gv30v6.mp3', 
-    @Album4, -- Thuộc Album Justin Bieber
+    @Album4,
     'U002'
 ),
 (
@@ -469,7 +487,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     205, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690908/sorry_jhbqcs.mp4', 
-    @Album4, -- Thuộc Album Justin Bieber
+    @Album4,
     'U002'
 ),
 (
@@ -480,7 +498,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Audio',
     262, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692056/blinding-lights_oehkrw.mp3', 
-    @Album2, -- Thuộc Album The Weeknd
+    @Album2,
     'U002'
 ),
 (
@@ -491,7 +509,6 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     'Video',
     262, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690894/blinding-lights_nypdxd.mp4', 
-    @Album2, -- Thuộc Album The Weeknd
+    @Album2,
     'U002'
 );
-

@@ -5,11 +5,11 @@ namespace TuneVault.Application.Features.Playlist.DTOs
     {
         public Guid ShareId { get; set; } 
         public Guid MediaId { get; set; }
-        public string Title { get; set; } = null!;
-        public string Type { get; set; } = null!;
-        public string FilePath { get; set; } = null!;
-        public string ThumbnailUrl { get; set; } = null!;
-        public string SenderName { get; set; } = null!;
+        public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string ThumbnailUrl { get; set; } = string.Empty;
+        public string SenderName { get; set; } = string.Empty;
         public DateTime SharedAt { get; set; }
     }
 }

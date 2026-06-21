@@ -1,4 +1,6 @@
-﻿public class Album
+﻿namespace TuneVault.Domain.Entities;
+
+public class Album
 {
     // Khóa chính (PK)
     public required Guid Id { get; set; }
@@ -9,5 +11,5 @@
     public string? CoverImageUrl { get; set; }
 
     // Khóa ngoại (FK)
-    public required Guid ArtistId { get; set; } // FK: Trỏ đến bảng Artist
+    public required string ArtistId { get; set; } // Đổi sang string: Trỏ đến AppUser (có IsArtist = true)
 }

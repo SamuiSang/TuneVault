@@ -1,6 +1,8 @@
-﻿public class MediaArtist
+﻿namespace TuneVault.Domain.Entities;
+
+public class MediaArtist
 {
     // Khóa ngoại (FK) đồng thời là Composite Key
     public required Guid MediaItemId { get; set; } // FK: Trỏ đến MediaItem
-    public required Guid ArtistId { get; set; } // FK: Trỏ đến Artist
+    public required string ArtistId { get; set; } // Đổi sang string: Trỏ đến AppUser (có IsArtist = true)
 }
