@@ -103,6 +103,7 @@ export interface RegisterRequest {
   userName: string;
 }
 
+
 // Khớp hoàn toàn với BaseResponse<T> trong BaseResponse.cs
 export interface BaseResponse<T> {
   success: boolean;
