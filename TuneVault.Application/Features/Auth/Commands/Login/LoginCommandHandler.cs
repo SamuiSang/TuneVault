@@ -19,19 +19,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, BaseResponse<st
 
     public async Task<BaseResponse<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        // 1. Tìm user theo email
-        var user = await _userManager.FindByEmailAsync(request.Email);
+        // 1. Tìm user theo Email, nếu không có thì tìm theo UserName
+        var user = await _userManager.FindByEmailAsync(request.EmailOrUsername) 
+                   ?? await _userManager.FindByNameAsync(request.EmailOrUsername);
+                   
         if (user == null)
         {
-            // Tùy biến cách khởi tạo BaseResponse theo cấu trúc class của bạn
-            return new BaseResponse<string>("Email hoặc mật khẩu không chính xác."); 
+            return new BaseResponse<string>("Tên đăng nhập/Email hoặc mật khẩu không chính xác."); 
         }
 
         // 2. Kiểm tra tính hợp lệ của mật khẩu
         var result = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!result)
         {
-            return new BaseResponse<string>("Email hoặc mật khẩu không chính xác.");
+            return new BaseResponse<string>("Tên đăng nhập/Email hoặc mật khẩu không chính xác.");
         }
 
         // 3. Kích hoạt dịch vụ tạo Token

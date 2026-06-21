@@ -6,35 +6,29 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Auth = () => {
   const location = useLocation();
-  // Kiểm tra xem state có được truyền từ TopBar sang không. 
-  // Mặc định nếu người dùng gõ trực tiếp URL '/auth' thì vẫn hiển thị Login (true)
   const initialMode = location.state?.isLogin !== false;
 
-  // ---> THÊM STATE ĐĂNG KÝ VÀ TOGGLE <---
-  // State để chuyển đổi giữa giao diện Đăng nhập và Đăng ký
+  // ---> STATE QUẢN LÝ FORM <---
   const [isLoginView, setIsLoginView] = useState(initialMode);
-  const [userName, setUserName] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  // ---> END: THÊM STATE ĐĂNG KÝ VÀ TOGGLE <---
-
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState(''); // Tên đăng nhập (dùng cho đăng ký)
+  const [emailOrUsername, setEmailOrUsername] = useState(''); // Dùng chung: Login (Email/Username) hoặc Register (Email)
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Thêm state xác nhận mật khẩu
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Dùng useEffect để đổi form ngay lập tức nếu người dùng bấm back/forward trình duyệt 
-  // hoặc location thay đổi mà component vẫn đang mount.
   useEffect(() => {
     if (location.state && typeof location.state.isLogin === 'boolean') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoginView(location.state.isLogin);
       setError('');
       setSuccessMsg('');
     }
   }, [location.state]);
 
-  // ---> XỬ LÝ SUBMIT (ĐĂNG NHẬP & ĐĂNG KÝ) <---
+  // ---> XỬ LÝ SUBMIT (ĐĂNG NHẬP & ĐĂNG KÝ GỘP CHUNG) <---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -42,50 +36,47 @@ const Auth = () => {
     
     try {
       if (isLoginView) {
-        //LUỒNG XỬ LÝ ĐĂNG NHẬP
+        // LUỒNG XỬ LÝ ĐĂNG NHẬP
         const res = await axios.post('http://localhost:5277/api/auth/login', { 
-          email, 
+          emailOrUsername: emailOrUsername, // Gửi lên thuộc tính emailOrUsername cho backend
           password 
         });
         
         if (res.data) {
-//LUỒNG XỬ LÝ ĐĂNG NHẬP (Dùng Axios thuần cổng 5277)
-        const res = await axios.post('http://localhost:5277/api/auth/login', { 
-          email, 
-          password 
-        });
-        
-        if (res.data) {
-          // 1. Lấy token từ response phù hợp với BaseResponse<string> (Từ nhánh main)
           const token = res.data.data || res.data.token || res.data;
           
           if (typeof token !== 'string') {
             throw new Error('Không thể lấy token đăng nhập từ phản hồi server.');
           }
 
-          // 2. Bật thông báo thành công lên màn hình giống như lúc Đăng ký (Từ nhánh Thanh)
           setSuccessMsg('Đăng nhập thành công! Đang đăng nhập vào hệ thống...');
           
-          // 3. Trì hoãn 1.5 giây để kịp nhìn thông báo xanh, sau đó chạy logic async của main
           setTimeout(async () => {
             try {
-              await login(token); // Truyền đúng chuỗi token vào AuthContext và chờ fetch profile xong
-              navigate('/');      // Chuyển hướng về trang chủ
+              await login(token); 
+              navigate('/');      
             } catch (loginErr: any) {
-                setError(loginErr.message || 'Có lỗi xảy ra khi đồng bộ tài khoản.');
-              }
-            }, 1500); 
-          }
+              setError(loginErr.message || 'Có lỗi xảy ra khi đồng bộ tài khoản.');
+            }
+          }, 1500); 
         }
       } else {
-        //LUỒNG XỬ LÝ ĐĂNG KÝ
+        // LUỒNG XỬ LÝ ĐĂNG KÝ
+        if (password !== confirmPassword) {
+          setError('Mật khẩu xác nhận không khớp!');
+          return; // Chặn gọi API nếu mật khẩu không khớp
+        }
+
         await axios.post('http://localhost:5277/api/auth/register', { 
-          email, 
-          password, 
+          email: emailOrUsername, 
+          password: password, 
           username: userName 
         });
         
         setSuccessMsg('Đăng ký thành công! Đang chuyển sang đăng nhập...');
+        // Reset form sau khi đăng ký thành công
+        setPassword('');
+        setConfirmPassword('');
         setTimeout(() => setIsLoginView(true), 2000);
       }
     } catch (err: any) {
@@ -93,9 +84,8 @@ const Auth = () => {
       setError(err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra khi kết nối tới máy chủ.');
     }
   };
-  // ---> END: XỬ LÝ SUBMIT (ĐĂNG NHẬP & ĐĂNG KÝ) <---
 
-return (
+  return (
     //BACKGROUND ĐƯỢC PHỐI GRADIENT RADIAL + CHỐNG TRÀN OVERFLOW
     <div className="relative flex h-screen items-center justify-center bg-gradient-to-br from-[#121212] via-[#1c1c1c] to-[#0a110d] text-spotify-text overflow-hidden">
       
@@ -126,12 +116,12 @@ return (
         <form onSubmit={handleSubmit} className="space-y-5">
           {!isLoginView && (
             <div className="transition-all duration-300">
-              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">Tên hiển thị</label>
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">Tên đăng nhập (Username)</label>
               <input 
                 type="text" 
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                placeholder="Nhập tên của bạn..."
+                placeholder="Nhập tên đăng nhập viết liền..."
                 className="w-full p-3 bg-[#242424]/70 border border-transparent rounded-lg focus:outline-none focus:border-spotify-primary focus:bg-[#282828] text-sm transition-all"
                 required={!isLoginView}
               />
@@ -139,16 +129,19 @@ return (
           )}
 
           <div>
-            <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">Email</label>
+            <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">
+              {isLoginView ? 'Email hoặc Tên đăng nhập' : 'Email'}
+            </label>
             <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@domain.com"
+              type="text" 
+              value={emailOrUsername}
+              onChange={(e) => setEmailOrUsername(e.target.value)}
+              placeholder={isLoginView ? "Nhập email hoặc tên đăng nhập..." : "name@domain.com"}
               className="w-full p-3 bg-[#242424]/70 border border-transparent rounded-lg focus:outline-none focus:border-spotify-primary focus:bg-[#282828] text-sm transition-all"
               required
             />
           </div>
+
           <div>
             <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">Mật khẩu</label>
             <input 
@@ -160,6 +153,21 @@ return (
               required
             />
           </div>
+
+          {/* Trường Xác nhận mật khẩu chỉ hiện khi ở chế độ Đăng ký */}
+          {!isLoginView && (
+            <div>
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-spotify-subtext">Xác nhận mật khẩu</label>
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full p-3 bg-[#242424]/70 border border-transparent rounded-lg focus:outline-none focus:border-spotify-primary focus:bg-[#282828] text-sm transition-all"
+                required={!isLoginView}
+              />
+            </div>
+          )}
           
           <button 
             type="submit" 

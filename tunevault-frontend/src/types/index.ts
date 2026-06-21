@@ -92,7 +92,7 @@ export interface MediaArtist {
 // --->  AXIOS VÀ AUTH CONTEXT  <---
 // Định nghĩa form gửi lên khi Login khớp với LoginCommand.cs
 export interface LoginRequest {
-  email: string;
+  emailOrUsername: string; // <-- Đổi thành emailOrUsername
   password: string;
 }
 
