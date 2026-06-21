@@ -14,16 +14,15 @@ public class UserRepository : IUserRepository
         _db = db;
     }
 
-    public async Task<bool> UpdateProfileAsync(string userId, string? bio, string? avatarUrl)
-    {
-        var sql = @"UPDATE AppUser
-                    SET Bio = @Bio, AvatarUrl = @AvatarUrl
-                    WHERE Id = @UserId";
+    public async Task<bool> UpdateProfileAsync(string userId, string? displayName, string? bio, string? avatarUrl)
+{
+    var sql = @"UPDATE AppUser
+                SET DisplayName = @DisplayName, Bio = @Bio, AvatarUrl = @AvatarUrl
+                WHERE Id = @UserId";
 
-        var rowsAffected = await _db.ExecuteAsync(sql, new { UserId = userId, Bio = bio, AvatarUrl = avatarUrl });
-        return rowsAffected > 0;
-    }
-
+    var rowsAffected = await _db.ExecuteAsync(sql, new { UserId = userId, DisplayName = displayName, Bio = bio, AvatarUrl = avatarUrl });
+    return rowsAffected > 0;
+}
     public async Task<AppUser?> GetByIdAsync(string userId)
     {
         var sql = "SELECT * FROM AppUser WHERE Id = @UserId";

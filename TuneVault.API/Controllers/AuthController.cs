@@ -66,7 +66,22 @@ public class AuthController : ControllerBase
             AvatarUrl = user.AvatarUrl
         });
     }
+    public class VerifyArtistRequest { public string Password { get; set; } = string.Empty; }
 
+    [Authorize]
+    [HttpPost("verify-artist")]
+    public async Task<IActionResult> VerifyArtist([FromBody] VerifyArtistRequest request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        
+        // Gọi tới Command vừa tạo
+        var result = await _mediator.Send(new TuneVault.Application.Features.Auth.Commands.VerifyArtist.VerifyArtistCommand(userId, request.Password));
+        
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+    
     [Authorize]
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
@@ -116,3 +131,4 @@ public class UserProfileResponse
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
 }
+
