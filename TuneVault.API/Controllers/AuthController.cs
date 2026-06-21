@@ -42,9 +42,9 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                 ?? User.FindFirst("id")?.Value
-                 ?? User.FindFirst("sub")?.Value;
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? 
+                    User.FindFirst("id")?.Value ?? 
+                    User.FindFirst("sub")?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -61,9 +61,11 @@ public class AuthController : ControllerBase
         {
             Id = user.Id,
             UserName = user.UserName,
+            DisplayName = user.DisplayName, // Cập nhật dòng này
             Email = user.Email,
             Bio = user.Bio,
-            AvatarUrl = user.AvatarUrl
+            AvatarUrl = user.AvatarUrl,
+            IsArtist = user.IsArtist // Cập nhật dòng này
         });
     }
     public class VerifyArtistRequest { public string Password { get; set; } = string.Empty; }
@@ -81,44 +83,37 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
-    
+
     [Authorize]
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        // Tự động bóc tách lấy UserId từ trong cái Token JWT mà Frontend gửi lên
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
-                 ?? User.FindFirst("id")?.Value 
-                 ?? User.FindFirst("sub")?.Value;
-        
-        if (string.IsNullOrEmpty(userId))
-    {
-        // In ra danh sách các thẻ có trong Token để xem các bạn kia đặt tên là gì
-        foreach (var claim in User.Claims)
-        {
-            Console.WriteLine($"Thẻ trong Token: {claim.Type} = {claim.Value}");
-        }
-        return Unauthorized("Không tìm thấy thông tin người dùng.");
-    }
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? 
+                    User.FindFirst("id")?.Value ?? 
+                    User.FindFirst("sub")?.Value;
 
-        // Đóng gói vào Command để đẩy qua MediatR
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Không tìm thấy thông tin người dùng.");
+        }
+
         var command = new UpdateProfileCommand
         {
             UserId = userId,
+            DisplayName = request.DisplayName, // Gắn DisplayName từ Request vào Command
             Bio = request.Bio,
             AvatarUrl = request.AvatarUrl
         };
 
         var isSuccess = await _mediator.Send(command);
-
-        if (!isSuccess)
-            return BadRequest("Cập nhật thông tin Profile thất bại.");
+        if (!isSuccess) return BadRequest("Cập nhật thông tin Profile thất bại.");
 
         return Ok(new { Message = "Cập nhật Profile thành công." });
     }
 }
 public class UpdateProfileRequest
 {
+    public string? DisplayName { get; set; } // Thêm dòng này
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
 }
@@ -127,8 +122,9 @@ public class UserProfileResponse
 {
     public string Id { get; set; } = string.Empty;
     public string? UserName { get; set; }
+    public string? DisplayName { get; set; } // Thêm dòng này
     public string? Email { get; set; }
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
+    public bool IsArtist { get; set; } // Thêm dòng này
 }
-

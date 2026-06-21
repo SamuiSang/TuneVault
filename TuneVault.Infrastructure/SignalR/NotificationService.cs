@@ -61,7 +61,16 @@ public class NotificationService : INotificationService
             throw;
         }
     }
-
+    
+    public async Task CreateNotificationAsync(string userId, string message, string type)
+    {
+        // Gọi đến hàm gửi thông báo SignalR đã có sẵn trong class
+        await SendNotificationToUserAsync(userId, type, new 
+        { 
+            message = message,
+            createdAt = DateTime.UtcNow 
+        });
+    }
     /// <summary>
     /// Gửi notification tới nhiều users
     /// </summary>
