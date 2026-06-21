@@ -1,6 +1,7 @@
 using Dapper;
 using System.Data;
 using TuneVault.Application.Common.Interfaces;
+using TuneVault.Domain.Entities;
 using TuneVault.Application.Features.Interactions.DTOs;
 
 namespace TuneVault.Infrastructure.Repositories;
@@ -14,6 +15,13 @@ public class FavoriteRepository : IFavoriteRepository
         _db = db;
     }
 
+    public async Task AddAsync(Favorite favorite)
+    {
+        var sql = @"INSERT INTO Favorites (UserId, MediaId, CreatedAt) 
+                    VALUES (@UserId, @MediaId, @CreatedAt)";
+                    
+        await _db.ExecuteAsync(sql, favorite); // Không cần return nữa
+    }
     public async Task<bool> AddFavoriteAsync(string userId, Guid mediaItemId)
     {
         // Kiểm tra xem đã tồn tại chưa trước khi chèn để bảo vệ hệ thống

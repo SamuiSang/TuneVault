@@ -6,4 +6,6 @@
 
     // Thuộc tính
     public required DateTime CreatedAt { get; set; }
+    public Guid Id { get; set; }
+    public Guid MediaId { get; set; }
 }

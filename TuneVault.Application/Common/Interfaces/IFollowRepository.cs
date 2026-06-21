@@ -1,4 +1,5 @@
 using TuneVault.Application.Features.Interactions.DTOs;
+using TuneVault.Domain.Entities;
 
 namespace TuneVault.Application.Common.Interfaces;
 
@@ -30,4 +31,6 @@ public interface IFollowRepository
     Task<int> GetUserFollowerCountAsync(string followeeId);
     Task<int> GetArtistFollowerCountAsync(Guid artistId);
     Task<FollowStatsDto> GetFollowStatsAsync(string userId);
+    Task<bool> ExistsAsync(string followerId, string followeeId);
+    Task<object> CreateAsync(Follow follow);
 }

@@ -1,6 +1,7 @@
 using Dapper;
 using System.Data;
 using TuneVault.Application.Common.Interfaces;
+using TuneVault.Domain.Entities;
 using TuneVault.Application.Features.Interactions.DTOs;
 
 namespace TuneVault.Infrastructure.Repositories;
@@ -15,6 +16,27 @@ public class FollowRepository : IFollowRepository
     }
 
     #region Follow Commands
+    // 1. Thêm hàm ExistsAsync
+    public async Task<bool> ExistsAsync(string followerId, string followingId)
+    {
+        var sql = @"SELECT COUNT(1) 
+                    FROM UserFollows 
+                    WHERE FollowerId = @FollowerId AND FollowingId = @FollowingId";
+                    
+        return await _db.ExecuteScalarAsync<int>(sql, new { FollowerId = followerId, FollowingId = followingId }) > 0;
+    }
+
+    // 2. Thêm hàm CreateAsync
+    public async Task<object> CreateAsync(Follow follow)
+    {
+        var sql = @"INSERT INTO UserFollows (FollowerId, FollowingId, CreatedAt) 
+                    VALUES (@FollowerId, @FollowingId, @CreatedAt)";
+                    
+        var rowsAffected = await _db.ExecuteAsync(sql, follow);
+        
+        // Trả về kết quả (C# sẽ tự động box kiểu bool này thành object để khớp với Interface)
+        return rowsAffected > 0; 
+    }
 
     public async Task<Guid> FollowUserAsync(string followerId, string followeeId)
     {
