@@ -3,7 +3,7 @@ namespace TuneVault.Application.Features.Playlist.DTOs
 {
     public class SharedMediaDto
     {
-        public Guid ShareId { get; set; }
+        public Guid ShareId { get; set; } 
         public Guid MediaId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
