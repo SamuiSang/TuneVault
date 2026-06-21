@@ -16,7 +16,7 @@ public class FollowsController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpPost]
+    [HttpPost("{id}")]
     public async Task<IActionResult> Follow(
         FollowArtistCommand command)
     {
