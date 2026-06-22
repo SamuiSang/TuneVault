@@ -28,6 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: decoded.email || decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],
         userName: decoded.name || decoded.unique_name || decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
         avatarUrl: decoded.avatarUrl || decoded.avatar_url || decoded.picture || undefined,
+        isArtist: false,
       };
       setUser(userInfo);
       setToken(jwtToken);
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           email: profile.email || '',
           bio: profile.bio || undefined,
           avatarUrl: profile.avatarUrl || undefined,
+          isArtist: profile.isArtist ?? false,
         });
         setToken(jwtToken);
       } else {

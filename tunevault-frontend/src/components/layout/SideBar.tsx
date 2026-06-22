@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiSearch, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
+import { FiHome, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
 import { useState, useEffect } from 'react';

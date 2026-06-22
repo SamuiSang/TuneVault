@@ -47,5 +47,20 @@ export const interactionService = {
   checkIsFollowing: async (targetId: string): Promise<boolean> => {
     const response = await api.get<boolean>(`/api/interactions/is-following/${targetId}`);
     return response.data;
-  }
+  },
+
+  followArtist: async (followerId: string, artistId: string): Promise<void> => {
+    await api.post('/interactions/follow/artist', { followerId, artistId });
+  },
+
+  unfollowArtist: async (followerId: string, artistId: string): Promise<void> => {
+    await api.post('/interactions/unfollow/artist', { followerId, artistId });
+  },
+
+  checkIsFollowingArtist: async (followerId: string, artistId: string): Promise<boolean> => {
+    const response = await api.get<{ isFollowing: boolean }>(
+      `/interactions/follow/artist/check/${followerId}/${artistId}`
+    );
+    return response.data.isFollowing;
+  },
 };

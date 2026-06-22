@@ -170,6 +170,18 @@ namespace TuneVault.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMediaById(Guid id, [FromServices] IMediaRepository mediaRepository, CancellationToken cancellationToken)
+        {
+            var media = await mediaRepository.GetMediaByIdAsync(id, cancellationToken);
+            if (media == null)
+            {
+                return NotFound(new { success = false, message = "Không tìm thấy media." });
+            }
+
+            return Ok(media);
+        }
+
        [HttpGet("{id}/stream")]
         public async Task<IActionResult> StreamMedia(Guid id, [FromServices] IMediaRepository mediaRepository, CancellationToken cancellationToken)
         {

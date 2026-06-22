@@ -6,13 +6,17 @@ export interface PlayerContextType {
   streamUrl: string;
   isLoading: boolean;
   playTrack: (track: MediaItem) => Promise<void>;
-  
-  // ---> BỔ SUNG CHO HIẾU: Thêm State và Hàm quản lý Queue <---
   queue: MediaItem[];
   currentIndex: number;
+  allMediaItems: MediaItem[];
+  setAllMediaItems: (items: MediaItem[]) => void;
+  volume: number;
+  setVolume: (volume: number) => void;
   setQueue: (tracks: MediaItem[], startIndex?: number) => Promise<void>;
+  playAtIndex: (index: number) => Promise<void>;
   playNext: () => Promise<void>;
   playPrev: () => Promise<void>;
+  shuffleQueue: () => Promise<void>;
 }
 
 // Khởi tạo và export đối tượng Context ra ngoài

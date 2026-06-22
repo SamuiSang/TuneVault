@@ -6,4 +6,9 @@ export const mediaService = {
     const response = await api.get<MediaItem[]>('/media/all');
     return response.data;
   },
+
+  getMediaById: async (id: string): Promise<MediaItem> => {
+    const response = await api.get<MediaItem>(`/media/${id}`);
+    return response.data;
+  },
 };
