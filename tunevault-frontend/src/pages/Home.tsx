@@ -3,11 +3,11 @@ import { FaPlay } from 'react-icons/fa';
 import { usePlayer } from '../hooks/usePlayer';
 import { mediaService } from '../services/mediaService';
 import type { MediaItem } from '../types';
-import { useNavigate } from 'react-router-dom'; // ---> THÊM IMPORT: Để chuyển hướng trang
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const { setQueue } = usePlayer();
-  const navigate = useNavigate(); // ---> KHỞI TẠO: Hook điều hướng điều hướng đường dẫn
+  const navigate = useNavigate();
 
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,16 +27,18 @@ const Home = () => {
     fetchMediaData();
   }, []);
 
-  // ---> THÊM HÀM XỬ LÝ CLICK PHÂN LOẠI MEDIA
-  // Tình trạng: Đề bài yêu cầu Video có view riêng, không dùng chung Audio Bar.
-  // Hành động: Khi người dùng click vào Media có type === "Video", frontend chuyển hướng sang route riêng biệt.
   const handleMediaClick = (item: MediaItem) => {
     if (item.type === 'Video') {
-      // Nếu là Video: Điều hướng trực tiếp sang route chuyên dụng (/video/:id) kèm dữ liệu state
       navigate(`/video/${item.id}`, { state: { videoData: item } });
     } else {
-      // Nếu là Audio: Giữ nguyên logic phát nhạc đẩy bài hát vào Queue của Audio Bar như cũ
       setQueue([item]);
+    }
+  };
+
+  const handleArtistClick = (e: React.MouseEvent, artistId: string) => {
+    e.stopPropagation();
+    if (artistId) {
+      navigate(`/artist/${artistId}`);
     }
   };
 
@@ -56,12 +58,12 @@ const Home = () => {
           {mediaItems.map((item) => (
             <div
               key={item.id}
-              onClick={() => handleMediaClick(item)} // ---> THAY ĐỔI: Sử dụng hàm handleMediaClick phân loại thay vì setQueue trực tiếp
+              onClick={() => handleMediaClick(item)}
               className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group relative"
             >
               <div className="relative group mb-4">
                 <img
-                  src={item.thumbnailUrl || item.thumbnailUrl || 'default-cover.png'}
+                  src={item.thumbnailUrl || 'default-cover.png'}
                   alt={item.title}
                   className="w-full aspect-square object-cover object-center rounded-md shadow-md bg-spotify-elevated"
                 />
@@ -71,17 +73,17 @@ const Home = () => {
                 </button>
               </div>
 
-              {/* Sửa text-base thành text-sm và font-bold thành font-semibold để chữ title nhỏ lại và thanh lịch hơn */}
               <h3 className="font-medium text-[13px] mb-1.5 line-clamp-2" title={item.title}>
                 {item.title}
               </h3>
 
               <div className="flex items-center justify-between mt-1">
-                {/* Đổi max-w-[60%] thành w-full để tên Artist hiển thị rộng rãi, tận dụng khoảng trống sau khi xóa nút follow */}
-                <p className="text-xs text-spotify-subtext truncate w-full">
+                <p 
+                  onClick={(e) => handleArtistClick(e, item.ownerId)}
+                  className="text-xs text-spotify-subtext truncate w-full hover:underline hover:text-white transition-colors cursor-pointer"
+                >
                   {item.ownerId || 'Unknown Artist'}
                 </p>
-                {/* ĐÃ XÓA: Phần chứa FollowButton ở đây để đưa về đúng thiết kế chuẩn hệ thống */}
               </div>
             </div>
           ))}
