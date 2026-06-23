@@ -68,6 +68,27 @@ public class AuthController : ControllerBase
             IsArtist = user.IsArtist // Cập nhật dòng này
         });
     }
+
+    [HttpGet("profile/{id}")]
+    public async Task<IActionResult> GetProfileById(string id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound("Người dùng không tồn tại.");
+        }
+
+        return Ok(new UserProfileResponse
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Bio = user.Bio,
+            AvatarUrl = user.AvatarUrl,
+            IsArtist = user.IsArtist
+        });
+    }
     public class VerifyArtistRequest { public string Password { get; set; } = string.Empty; }
 
     [Authorize]

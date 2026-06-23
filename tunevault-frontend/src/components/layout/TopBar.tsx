@@ -45,6 +45,24 @@ const Topbar = () => {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
 
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return <span className="text-white font-medium truncate">{text}</span>;
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    const parts = text.split(regex);
+    return (
+      <span className="text-spotify-subtext font-medium truncate">
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <span key={i} className="text-white font-bold">{part}</span>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </span>
+    );
+  };
+
   // Lấy gợi ý tổng hợp khi gõ
   useEffect(() => {
     const keyword = searchParams.get('q');
@@ -292,6 +310,26 @@ const Topbar = () => {
                   <h3 className="text-white font-bold text-lg mb-4">Kết quả gợi ý</h3>
                   {suggestions.length > 0 ? (
                     <ul className="flex flex-col gap-2">
+                      {/* TEXT SUGGESTIONS */}
+                      {Array.from(new Set(suggestions.map(s => s.title)))
+                        .filter(t => t.toLowerCase().includes((searchParams.get('q') || '').toLowerCase()) && t.toLowerCase() !== (searchParams.get('q') || '').toLowerCase())
+                        .slice(0, 3)
+                        .map((term, idx) => (
+                        <li
+                          key={`text-${idx}`}
+                          onClick={() => {
+                            setIsSearchFocused(false);
+                            navigate(`/search?q=${encodeURIComponent(term)}`);
+                          }}
+                          className="flex items-center gap-3 p-2 hover:bg-white/10 rounded cursor-pointer group"
+                        >
+                          <FiSearch className="text-spotify-subtext text-xl flex-shrink-0" />
+                          <div className="flex flex-col overflow-hidden w-full">
+                            {highlightMatch(term, searchParams.get('q') || '')}
+                          </div>
+                        </li>
+                      ))}
+
                       {suggestions.map((item) => (
                         <li
                           key={`${item.type}-${item.id}`}
@@ -299,7 +337,16 @@ const Topbar = () => {
                             setIsSearchFocused(false);
                             addRecentSearch(item.title);
                             if (item.type === 'media') {
-                              void player?.playTrack(item.originalData);
+                              const mappedItem = {
+                                id: item.originalData.id || item.originalData.Id,
+                                title: item.originalData.title || item.originalData.Title,
+                                thumbnailUrl: item.originalData.thumbnailUrl || item.originalData.ThumbnailUrl,
+                                ownerId: item.originalData.artistName || item.originalData.ArtistName || 'Unknown',
+                                type: 'Audio',
+                                duration: item.originalData.duration || item.originalData.Duration || 0,
+                                filePath: ''
+                              };
+                              void player?.playTrack(mappedItem as any);
                             } else if (item.type === 'artist') {
                               navigate(`/artist/${item.id}`);
                             } else if (item.type === 'playlist') {
@@ -317,7 +364,7 @@ const Topbar = () => {
                               )}
                             </div>
                             <div className="flex flex-col overflow-hidden max-w-[200px] sm:max-w-[300px]">
-                              <span className="text-white font-medium truncate">{item.title}</span>
+                              {highlightMatch(item.title, searchParams.get('q') || '')}
                               <span className="text-spotify-subtext text-xs truncate">{item.subtitle}</span>
                             </div>
                           </div>

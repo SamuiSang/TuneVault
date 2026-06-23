@@ -4,28 +4,97 @@ import { usePlayer } from '../hooks/usePlayer';
 import { mediaService } from '../services/mediaService';
 import type { MediaItem } from '../types';
 import { useNavigate } from 'react-router-dom';
+import AddTrackModal from '../components/AddTrackModal';
+import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import FollowButton from '../components/layout/FollowButton';
 
 const Home = () => {
   const { setQueue } = usePlayer();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [historyItems, setHistoryItems] = useState<MediaItem[]>([]);
+  const [allMedia, setAllMedia] = useState<MediaItem[]>([]);
+  const [popularArtists, setPopularArtists] = useState<any[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchMediaData = async () => {
+    const fetchHomeData = async () => {
       try {
-        const data = await mediaService.getAllMedia();
-        setMediaItems(data);
+        let allMediaData: any[] = [];
+        let artistsRes: any = { data: [] };
+
+        try {
+          allMediaData = await mediaService.getAllMedia();
+        } catch (e) {
+          console.error('Error fetching all media:', e);
+        }
+
+        try {
+          artistsRes = await api.get('/Search/artists?keyword=');
+        } catch (e) {
+          console.error('Error fetching artists:', e);
+        }
+        
+        const allMedia = allMediaData.filter((item: any) => item.type !== 'Video');
+        setAllMedia(allMedia);
+
+        // 1. Fetch History
+        let recentItems: MediaItem[] = [];
+        if (user?.id) {
+          try {
+            const historyRes = await api.get(`/Interactions/history/${user.id}`);
+            if (historyRes.data?.success && historyRes.data.data?.length > 0) {
+              recentItems = historyRes.data.data.map((h: any) => ({
+                id: h.mediaId, // map MediaId to id
+                title: h.title,
+                type: h.type,
+                duration: h.duration,
+                thumbnailUrl: h.thumbnailUrl,
+                ownerId: h.ownerId,
+                ownerName: h.ownerName
+              }));
+            }
+          } catch (e) {
+            console.error('Error fetching history:', e);
+          }
+        }
+
+        if (recentItems.length === 0) {
+          // Fallback to random/first media items if no history
+          recentItems = allMedia.slice(0, 5);
+        } else {
+          // Lọc trùng lặp ID
+          const uniqueItems = [];
+          const seen = new Set();
+          for (const item of recentItems) {
+              if (!seen.has(item.id)) {
+                  seen.add(item.id);
+                  uniqueItems.push(item);
+              }
+          }
+          recentItems = uniqueItems.slice(0, 5);
+        }
+        setHistoryItems(recentItems);
+
+        // 3. Popular Artists
+        if (artistsRes.data) {
+          setPopularArtists(artistsRes.data.slice(0, 6)); // Lấy 6 nghệ sĩ phổ biến
+        }
+
       } catch (error) {
-        console.error('Lỗi khi tải danh sách bài hát:', error);
+        console.error('Error fetching home data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMediaData();
-  }, []);
+    fetchHomeData();
+  }, [user]);
 
   const handleMediaClick = (item: MediaItem) => {
     if (item.type === 'Video') {
@@ -45,50 +114,134 @@ const Home = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[50vh] text-spotify-text">
-        <p className="animate-pulse">Đang tải danh sách bài hát...</p>
+        <p className="animate-pulse">Đang tải trang chủ...</p>
       </div>
     );
   }
 
+  // UI Component cho card nhạc (dùng chung cho For You và Artist Tracks)
+  const MediaCard = ({ item }: { item: MediaItem }) => (
+    <div
+      onClick={() => handleMediaClick(item)}
+      className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group relative"
+    >
+      <div className="relative group mb-4">
+        <img
+          src={item.thumbnailUrl || 'default-cover.png'}
+          alt={item.title}
+          className="w-full aspect-square object-cover object-center rounded-md shadow-md bg-spotify-elevated"
+        />
+
+        <button 
+          onClick={(e) => { e.stopPropagation(); setSelectedMediaId(item.id); setIsAddModalOpen(true); }}
+          className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 hover:scale-105 z-10"
+          title="Thêm vào Playlist"
+        >
+          +
+        </button>
+
+        <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-[0_8px_8px_rgba(0,0,0,0.3)] hover:scale-105 text-black z-10">
+          <FaPlay className="ml-1 text-lg" />
+        </button>
+      </div>
+
+      <h3 className="font-bold text-[15px] mb-1.5 line-clamp-1 text-white" title={item.title}>
+        {item.title}
+      </h3>
+
+      <div className="flex items-center justify-between mt-1">
+        <p 
+          onClick={(e) => handleArtistClick(e, item.ownerId)}
+          className="text-sm text-spotify-subtext truncate w-full hover:underline hover:text-white transition-colors cursor-pointer"
+        >
+          {item.ownerName || item.ownerId || 'Unknown Artist'}
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="text-spotify-text pb-24">
-      <section className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 hover:underline cursor-pointer">Dành cho bạn</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-          {mediaItems.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => handleMediaClick(item)}
-              className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group relative"
+    <div className="text-spotify-text pb-24 px-2">
+      {/* SECTION 1: For You */}
+      <section className="mb-10 mt-2">
+        <div className="flex justify-between items-end mb-4">
+            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">For you</h2>
+            <button 
+              onClick={() => navigate('/tracks')}
+              className="text-sm text-spotify-subtext font-bold hover:underline"
             >
-              <div className="relative group mb-4">
+              Show all
+            </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          {(() => {
+            // Merge history and all media, deduplicate, take 12 items (2 rows of 6)
+            const mixedItems = [
+              ...historyItems, 
+              ...allMedia.filter(a => !historyItems.some(h => h.id === a.id))
+            ].slice(0, 12);
+            
+            return mixedItems.map((item) => (
+              <MediaCard key={item.id} item={item} />
+            ));
+          })()}
+        </div>
+      </section>
+
+      {/* SECTION 2: Popular Artists */}
+      <section className="mb-10">
+        <div className="flex justify-between items-end mb-4">
+            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Popular artists</h2>
+            <button 
+              onClick={() => navigate('/search')}
+              className="text-sm text-spotify-subtext font-bold hover:underline"
+            >
+              Show all
+            </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          {popularArtists.map((artist) => (
+            <div
+              key={artist.id}
+              onClick={() => navigate(`/artist/${artist.id}`)}
+              className="bg-spotify-card hover:bg-spotify-card-hover p-4 rounded-md transition-all duration-300 cursor-pointer group relative flex flex-col items-center text-center"
+            >
+              {/* Circular Avatar */}
+              <div className="relative w-full aspect-square mb-4 rounded-full overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
                 <img
-                  src={item.thumbnailUrl || 'default-cover.png'}
-                  alt={item.title}
-                  className="w-full aspect-square object-cover object-center rounded-md shadow-md bg-spotify-elevated"
+                  src={artist.imageUrl || artist.avatarUrl || 'default-cover.png'}
+                  alt={artist.name || artist.displayName || artist.userName}
+                  className="w-full h-full object-cover bg-spotify-elevated"
                 />
-
-                <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-[0_8px_8px_rgba(0,0,0,0.3)] hover:scale-105 text-black z-10">
-                  <FaPlay className="ml-1 text-lg" />
-                </button>
-              </div>
-
-              <h3 className="font-medium text-[13px] mb-1.5 line-clamp-2" title={item.title}>
-                {item.title}
-              </h3>
-
-              <div className="flex items-center justify-between mt-1">
-                <p 
-                  onClick={(e) => handleArtistClick(e, item.ownerId)}
-                  className="text-xs text-spotify-subtext truncate w-full hover:underline hover:text-white transition-colors cursor-pointer"
+                
+                {/* Hover Follow Button - Ở chính giữa ảnh hoặc góc dưới ảnh */}
+                <div 
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()} 
                 >
-                  {item.ownerId || 'Unknown Artist'}
-                </p>
+                    <FollowButton targetId={artist.id} />
+                </div>
               </div>
+
+              <h3 className="font-bold text-[16px] mb-1 line-clamp-1 text-white">
+                {artist.name || artist.displayName || artist.userName}
+              </h3>
+              <p className="text-sm text-spotify-subtext">Artist</p>
             </div>
           ))}
         </div>
       </section>
+
+      {/* Modal Add Track */}
+      {isAddModalOpen && selectedMediaId && (
+        <AddTrackModal
+          mediaId={selectedMediaId}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setSelectedMediaId(null);
+          }}
+        />
+      )}
     </div>
   );
 };

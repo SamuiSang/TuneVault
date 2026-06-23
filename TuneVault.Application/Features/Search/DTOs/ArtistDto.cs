@@ -2,7 +2,7 @@ namespace TuneVault.Application.Features.Search.DTOs;
 
 public class ArtistDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
 

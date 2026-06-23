@@ -2,25 +2,84 @@ import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { usePlayer } from '../../hooks/usePlayer'; 
 // ĐÃ THÊM: Icon FiShare2
-import { FiVolume2, FiVolumeX, FiList, FiShare2 } from 'react-icons/fi'; 
-import React, { useRef, useState } from 'react';
-// ĐÃ THÊM: Import cái Modal chia sẻ bồ vừa tạo (nằm ngay thư mục cha)
+import { FiVolume2, FiVolumeX, FiList, FiShare2, FiMonitor } from 'react-icons/fi'; 
+import { FaHeart } from 'react-icons/fa';
+import React, { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ShareModal from '../ShareModal'; 
+import { interactionService } from '../../services/interactionService';
+import { useAuth } from '../../contexts/AuthContext';
 
-const PlayerBar = () => {
+interface PlayerBarProps {
+  onToggleQueue?: () => void;
+  isQueueOpen?: boolean;
+}
+
+const PlayerBar: React.FC<PlayerBarProps> = ({ onToggleQueue, isQueueOpen }) => {
   // ---> BỔ SUNG CHO HIẾU: Gọi playNext, playPrev từ Context <---
   const { currentTrack, streamUrl, isLoading, playNext, playPrev } = usePlayer(); 
   const playerRef = useRef<AudioPlayer>(null);
-  const [volume, setVolume] = useState(1);
+  const navigate = useNavigate();
+  const [volume, setVolume] = useState<number>(() => {
+    const savedVol = localStorage.getItem('playerVolume');
+    return savedVol !== null ? parseFloat(savedVol) : 1;
+  });
   
   // ĐÃ THÊM: State quản lý việc đóng/mở Modal Share
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    const checkLiked = async () => {
+      const userId = user?.id || localStorage.getItem('userId');
+      if (userId && currentTrack?.id) {
+        try {
+          const liked = await interactionService.checkIsLiked(userId, currentTrack.id);
+          setIsLiked(liked);
+        } catch (e) { console.error(e); }
+      }
+    };
+    checkLiked();
+  }, [currentTrack?.id, user?.id]);
+
+  const handleToggleLike = async () => {
+    const userId = user?.id || localStorage.getItem('userId');
+    if (!userId || !currentTrack?.id) return;
+    try {
+      if (isLiked) {
+        await interactionService.unlikeSong(userId, currentTrack.id);
+        setIsLiked(false);
+      } else {
+        await interactionService.likeSong(userId, currentTrack.id);
+        setIsLiked(true);
+      }
+      // Gửi event để màn hình Yêu thích tải lại nếu cần
+      window.dispatchEvent(new Event('favorites_updated'));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
+    localStorage.setItem('playerVolume', newVolume.toString());
     if (playerRef.current && playerRef.current.audio.current) {
       playerRef.current.audio.current.volume = newVolume;
+    }
+  };
+
+  useEffect(() => {
+    if (playerRef.current && playerRef.current.audio.current) {
+      playerRef.current.audio.current.volume = volume;
+    }
+  }, [volume]);
+
+  const handlePlayVideo = () => {
+    if (currentTrack?.type === 'Video') {
+      playerRef.current?.audio.current?.pause();
+      navigate(`/video/${currentTrack.id}`, { state: { videoData: currentTrack } });
     }
   };
 
@@ -41,15 +100,27 @@ const PlayerBar = () => {
                 <span className="text-spotify-text text-sm font-semibold hover:underline cursor-pointer truncate max-w-[150px]" title={currentTrack.title}>
                   {currentTrack.title}
                 </span>
-                <span className="text-spotify-subtext text-xs hover:underline cursor-pointer truncate max-w-[150px]">
-                  {currentTrack.ownerId}
-                </span>
+                <div 
+                  className="text-xs text-spotify-subtext hover:underline cursor-pointer"
+                  onClick={() => navigate(`/artist/${currentTrack.ownerId}`)}
+                >
+                  {currentTrack.ownerName || currentTrack.ownerId}
+                </div>
               </div>
+              
+              {/* Nút Like Nhạc (Nằm kế bên tên bài hát) */}
+              <button 
+                onClick={handleToggleLike}
+                className={`ml-2 p-2 hover:scale-110 transition-all cursor-pointer ${isLiked ? 'text-spotify-primary' : 'text-spotify-subtext hover:text-white'}`}
+                title="Yêu thích bài hát này"
+              >
+                <FaHeart className="text-xl" />
+              </button>
               
               {/* ĐÃ THÊM: Nút Share Nhạc (Nằm kế bên tên bài hát) */}
               <button 
                 onClick={() => setIsShareModalOpen(true)}
-                className="ml-2 p-2 text-spotify-subtext hover:text-white hover:scale-110 transition-all cursor-pointer"
+                className="ml-1 p-2 text-spotify-subtext hover:text-white hover:scale-110 transition-all cursor-pointer"
                 title="Chia sẻ bài hát này"
               >
                 <FiShare2 className="text-xl" />
@@ -101,9 +172,22 @@ const PlayerBar = () => {
           />
         </div>
 
-        {/* Các control phụ (Volume, Queue) */}
-        <div className="w-1/4 flex justify-end items-center gap-3 text-spotify-subtext pr-4">
-          <FiList className="text-xl hover:text-white cursor-pointer transition-colors mr-2" />
+        <div className="w-1/4 flex justify-end items-center gap-3 text-spotify-subtext pr-4 relative">
+          {currentTrack?.type === 'Video' && (
+            <button 
+              onClick={handlePlayVideo} 
+              className="text-xl text-spotify-primary hover:scale-110 transition-transform mr-2"
+              title="Xem Video"
+            >
+              <FiMonitor />
+            </button>
+          )}
+
+          <div className="relative">
+            <button onClick={onToggleQueue} className={`text-xl hover:text-white transition-colors mr-2 ${isQueueOpen ? 'text-spotify-primary' : ''}`} title="Hàng đợi">
+              <FiList />
+            </button>
+          </div>
           
           <div className="cursor-pointer hover:text-white transition-colors">
             {volume === 0 ? <FiVolumeX className="text-xl" /> : <FiVolume2 className="text-xl" />}

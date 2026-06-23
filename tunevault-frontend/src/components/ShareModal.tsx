@@ -163,7 +163,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
                                                         e.stopPropagation();
                                                         onClose();
                                                         // Tuỳ chỉnh đường dẫn profile nếu sau này bạn có làm /profile/:id
-                                                        navigate(user.isArtist ? `/artist/${user.id}` : `/profile`);
+                                                        navigate(user.isArtist ? `/artist/${user.id}` : `/profile/${user.id}`);
                                                     }}
                                                     className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs font-medium"
                                                 >

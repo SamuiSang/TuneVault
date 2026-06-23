@@ -139,7 +139,7 @@ namespace TuneVault.Infrastructure.Repositories
         /// <summary>
         /// Lấy danh sách media của một artist
         /// </summary>
-        public async Task<List<GetMediaResponse>> GetMediaByArtistAsync(Guid artistId, CancellationToken cancellationToken = default)
+        public async Task<List<GetMediaResponse>> GetMediaByArtistAsync(string artistId, CancellationToken cancellationToken = default)
         {
             const string query = @"
                 SELECT DISTINCT m.Id, m.Title, m.Description, m.Type, m.Duration, m.ThumbnailUrl, m.AlbumId, m.OwnerId

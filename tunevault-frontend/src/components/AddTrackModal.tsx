@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { getUserPlaylists, addTrackToPlaylist } from '../services/playlistService';
+import { useAuth } from '../contexts/AuthContext';
 
 // ---> BỔ SUNG CHO TUÂN: Modal Thêm Bài Hát Vào Playlist <---
 interface AddTrackModalProps {
@@ -11,11 +12,15 @@ interface AddTrackModalProps {
 const AddTrackModal: React.FC<AddTrackModalProps> = ({ mediaId, onClose }) => {
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchPlaylists = async () => {
-            const userId = localStorage.getItem('userId');
-            if (!userId) return;
+            const userId = user?.id;
+            if (!userId) {
+                setIsLoading(false);
+                return;
+            }
             try {
                 const data = await getUserPlaylists(userId);
                 setPlaylists(Array.isArray(data) ? data : []);
@@ -26,7 +31,7 @@ const AddTrackModal: React.FC<AddTrackModalProps> = ({ mediaId, onClose }) => {
             }
         };
         fetchPlaylists();
-    }, []);
+    }, [user?.id]);
 
     const handleAddToPlaylist = async (playlistId: string) => {
         try {

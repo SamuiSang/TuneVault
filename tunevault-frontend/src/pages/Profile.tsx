@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FiEdit2, FiCopy, FiCheckCircle, FiStar } from 'react-icons/fi';
@@ -16,12 +16,49 @@ const Profile = () => {
 
   // States quản lý dữ liệu
   const [displayName, setDisplayName] = useState(user?.displayName || user?.userName || '');
+  const [profileUserName, setProfileUserName] = useState(user?.userName || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
   
   // Trạng thái UI
   const [isUploading, setIsUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [, setIsLoadingProfile] = useState(false);
+
+  useEffect(() => {
+    if (id && id !== user?.id) {
+      // Clear data to prevent showing current user's info while loading or on failure
+      setDisplayName('Đang tải...');
+      setProfileUserName('...');
+      setBio('');
+      setAvatarUrl('');
+      
+      setIsLoadingProfile(true);
+      api.get(`/auth/profile/${id}`)
+        .then(res => {
+          if (res.data) {
+            setDisplayName(res.data.displayName || res.data.userName || '');
+            setProfileUserName(res.data.userName || '');
+            setBio(res.data.bio || '');
+            setAvatarUrl(res.data.avatarUrl || '');
+          }
+        })
+        .catch(err => {
+          console.error("Lỗi khi lấy thông tin profile:", err);
+          toast.error("Không tìm thấy người dùng!");
+          setDisplayName('Không tìm thấy người dùng');
+        })
+        .finally(() => {
+          setIsLoadingProfile(false);
+        });
+    } else {
+      // My profile
+      setDisplayName(user?.displayName || user?.userName || '');
+      setProfileUserName(user?.userName || '');
+      setBio(user?.bio || '');
+      setAvatarUrl(user?.avatarUrl || '');
+    }
+  }, [id, user]);
   
   // State cho Popup Verify Artist
   const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -173,7 +210,7 @@ const Profile = () => {
           </div>
 
           <div className="flex items-center gap-3 mt-4 text-spotify-subtext text-sm">
-            <span>@{user.userName}</span>
+            <span>@{profileUserName}</span>
             <span>•</span>
             <span className="flex items-center gap-1 cursor-pointer hover:text-white transition" title="Sao chép ID" onClick={handleCopyId}>
               ID: {profileId?.substring(0, 8)}... <FiCopy />

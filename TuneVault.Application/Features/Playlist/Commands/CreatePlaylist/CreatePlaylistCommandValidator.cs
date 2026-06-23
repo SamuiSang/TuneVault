@@ -12,9 +12,5 @@ public class CreatePlaylistCommandValidator
             .WithMessage("Playlist name is required.")
             .MaximumLength(100)
             .WithMessage("Playlist name must not exceed 100 characters.");
-
-        RuleFor(x => x.OwnerId)
-            .NotEmpty()
-            .WithMessage("OwnerId is required.");
     }
 }

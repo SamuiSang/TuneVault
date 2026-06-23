@@ -51,9 +51,13 @@ public class PlayHistoryRepository : IPlayHistoryRepository
                 m.Title,
                 m.Duration,
                 m.Type,
-                ph.PlayedAt
+                ph.PlayedAt,
+                m.ThumbnailUrl,
+                m.OwnerId,
+                COALESCE(u.DisplayName, u.UserName) AS OwnerName
             FROM PlayHistory ph
             INNER JOIN MediaItem m ON ph.MediaItemId = m.Id
+            LEFT JOIN AppUser u ON m.OwnerId = u.Id
             WHERE ph.UserId = @UserId
             ORDER BY ph.PlayedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";

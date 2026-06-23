@@ -1,4 +1,4 @@
-﻿public class MediaItem
+public class MediaItem
 {
     // Khóa chính (PK)
     public required Guid Id { get; set; }
@@ -14,4 +14,7 @@
     // Khóa ngoại (FK)
     public Guid? AlbumId { get; set; } // Nullable FK: Trỏ đến Album (Có thể null nếu là đĩa đơn - Single)
     public required string OwnerId { get; set; } // FK: Trỏ đến bảng AppUser (AspNetUsers)
+
+    // Dapper property for UI
+    public string? OwnerName { get; set; }
 }

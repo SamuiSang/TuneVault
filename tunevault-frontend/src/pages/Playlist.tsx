@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPlaylistDetail, removeTrackFromPlaylist, addTrackToPlaylist, deletePlaylist } from "../services/playlistService";
-import { interactionService } from "../services/interactionService";
+import { mediaService } from "../services/mediaService";
 import { toast } from 'react-toastify'; 
 import { FiTrash2, FiPlus, FiMusic } from 'react-icons/fi';
+import { FaPlay } from 'react-icons/fa';
+import { usePlayer } from '../hooks/usePlayer';
 
 type Track = {
   id: string;
@@ -25,6 +27,7 @@ type PlaylistDetail = {
 export default function Playlist() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { setQueue } = usePlayer();
 
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +63,7 @@ export default function Playlist() {
     try {
       await removeTrackFromPlaylist(id, mediaId);
       toast.success("Đã xóa bài hát khỏi playlist!");
+      window.dispatchEvent(new Event('playlist_updated')); // Báo Sidebar cập nhật
       loadPlaylist(id); 
     } catch (err) {
       console.error(err);
@@ -88,7 +92,7 @@ export default function Playlist() {
       return;
     }
     try {
-      const allTracks = await interactionService.getListeningHistory();
+      const allTracks = await mediaService.getAllMedia();
       const filtered = (allTracks as any[]).filter(track => 
         track.title?.toLowerCase().includes(query.toLowerCase()) ||
         track.artistName?.toLowerCase().includes(query.toLowerCase())
@@ -106,10 +110,19 @@ export default function Playlist() {
       toast.success("Đã thêm bài hát vào danh sách phát!");
       setSearchQuery(""); 
       setSearchResults([]);
+      window.dispatchEvent(new Event('playlist_updated')); // Báo Sidebar cập nhật
       loadPlaylist(id); 
     } catch (err) {
       console.error(err);
       toast.error("Không thể thêm bài hát này!");
+    }
+  };
+
+  const handlePlayPlaylist = () => {
+    if (playlist?.tracks && playlist.tracks.length > 0) {
+      setQueue(playlist.tracks as any);
+    } else {
+      toast.warning("Playlist chưa có bài hát nào!");
     }
   };
 
@@ -161,14 +174,21 @@ export default function Playlist() {
           <p className="text-gray-400 text-sm">
             {playlist.description || "Chưa có mô tả cho danh sách phát này."}
           </p>
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-xs text-gray-500">
-              {playlist.tracks?.length || 0} bài hát
+          <div className="flex items-center gap-4 mt-6">
+            <button 
+              onClick={handlePlayPlaylist}
+              className="w-14 h-14 bg-spotify-primary rounded-full flex items-center justify-center text-black shadow-lg hover:scale-105 transition-all"
+              title="Phát Playlist"
+            >
+              <FaPlay className="ml-1 text-2xl" />
+            </button>
+            <p className="text-xs text-gray-500 font-bold">
+              {playlist.tracks?.length || 0} BÀI HÁT
             </p>
             {isOwner && (
               <button 
                 onClick={handleDeletePlaylist}
-                className="text-xs text-red-500 hover:text-red-400 font-bold border border-red-500/30 hover:border-red-500 px-3 py-1.5 rounded-full transition-all"
+                className="text-xs text-red-500 hover:text-red-400 font-bold border border-red-500/30 hover:border-red-500 px-3 py-1.5 rounded-full transition-all ml-auto"
               >
                 Xóa danh sách này
               </button>

@@ -126,3 +126,18 @@ export const getSharedWithMe = async (
 
   return response.data;
 };
+
+/**
+ * Xóa danh sách media được chia sẻ với tôi
+ */
+export const deleteSharedItems = async (
+  shareIds: string[]
+) => {
+  const response = await api.delete(
+    `${API_URL}/shared-with-me`, {
+      data: shareIds
+    }
+  );
+
+  return response.data;
+};

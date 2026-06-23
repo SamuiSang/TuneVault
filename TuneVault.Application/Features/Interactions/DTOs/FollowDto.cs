@@ -5,7 +5,6 @@ public record FollowDto
     public required Guid Id { get; set; }
     public required string FollowerId { get; set; }
     public string? FolloweeId { get; set; }
-    public Guid? ArtistId { get; set; }
     public required DateTime CreatedAt { get; set; }
 }
 
@@ -21,7 +20,7 @@ public record FollowingUserDto
 
 public record FollowingArtistDto
 {
-    public required Guid Id { get; set; }
+    public required string Id { get; set; }
     public required string Name { get; set; }
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }

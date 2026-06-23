@@ -15,4 +15,6 @@ public record FavoriteMediaDto
     public required string Type { get; set; }
     public required string FilePath { get; set; }
     public required DateTime FavoritedAt { get; set; }
+    public string? ArtistName { get; set; }
+    public string? ThumbnailUrl { get; set; }
 }

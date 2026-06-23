@@ -40,7 +40,7 @@ public class FollowUserCommand : IRequest<Guid>
 public class FollowArtistCommand : IRequest<Guid>
 {
     public required string FollowerId { get; set; }
-    public required Guid ArtistId { get; set; }
+    public required string ArtistId { get; set; }
 }
 
 public class UnfollowUserCommand : IRequest<bool>
@@ -52,5 +52,5 @@ public class UnfollowUserCommand : IRequest<bool>
 public class UnfollowArtistCommand : IRequest<bool>
 {
     public required string FollowerId { get; set; }
-    public required Guid ArtistId { get; set; }
+    public required string ArtistId { get; set; }
 }

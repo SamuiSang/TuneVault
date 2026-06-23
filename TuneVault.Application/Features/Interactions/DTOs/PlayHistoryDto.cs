@@ -16,6 +16,9 @@ public record PlayHistoryDetailDto
     public required int Duration { get; set; }
     public required string Type { get; set; }
     public required DateTime PlayedAt { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string OwnerId { get; set; } = string.Empty;
+    public string? OwnerName { get; set; }
 }
 
 public record TopPlayedMediaDto

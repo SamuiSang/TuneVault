@@ -433,7 +433,7 @@ public class InteractionsController : ControllerBase
     /// Kiểm tra đang theo dõi nghệ sĩ không
     /// </summary>
     [HttpGet("follow/artist/check/{followerId}/{artistId}")]
-    public async Task<IActionResult> IsFollowingArtist(string followerId, Guid artistId)
+    public async Task<IActionResult> IsFollowingArtist(string followerId, string artistId)
     {
         try
         {
@@ -475,7 +475,7 @@ public class InteractionsController : ControllerBase
     /// Lấy danh sách người theo dõi của nghệ sĩ
     /// </summary>
     [HttpGet("followers/artists/{artistId}")]
-    public async Task<IActionResult> GetArtistFollowers(Guid artistId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetArtistFollowers(string artistId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         try
         {
@@ -499,7 +499,7 @@ public class InteractionsController : ControllerBase
     /// Đếm số người theo dõi của nghệ sĩ
     /// </summary>
     [HttpGet("followers/artist/count/{artistId}")]
-    public async Task<IActionResult> GetArtistFollowerCount(Guid artistId)
+    public async Task<IActionResult> GetArtistFollowerCount(string artistId)
     {
         try
         {

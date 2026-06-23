@@ -5,9 +5,9 @@ namespace TuneVault.Application.Features.Search.Queries.SearchPlaylists;
 
 public class SearchPlaylistsQuery : IRequest<IEnumerable<PlaylistSearchDto>>
 {
-    public SearchPlaylistsQuery(string keyword)
+    public SearchPlaylistsQuery(string? keyword)
     {
-        Keyword = keyword;
+        Keyword = keyword ?? string.Empty;
     }
 
     public string Keyword { get; set; } = string.Empty;
