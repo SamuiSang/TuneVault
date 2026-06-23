@@ -24,7 +24,8 @@ public class CreatePlaylistCommandHandler
             Id = Guid.NewGuid(),
             Name = request.Name,
             IsPublic = request.IsPublic,
-            OwnerId = request.OwnerId
+            OwnerId = request.OwnerId,
+            CreatedAt = DateTime.UtcNow
         };
 
         var playlistId =

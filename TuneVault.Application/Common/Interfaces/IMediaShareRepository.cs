@@ -7,6 +7,7 @@ public interface IMediaShareRepository
 {
     Task<Guid> CreateMediaShareAsync(CreateMediaShareRequest request, CancellationToken cancellationToken = default);
     Task<bool> HasSharedInLast24HoursAsync(string senderId, string receiverId, Guid? mediaItemId, CancellationToken cancellationToken);
+    Task<bool> DeleteSharedItemsAsync(string receiverId, IEnumerable<Guid> shareIds, CancellationToken cancellationToken = default);
 }
 
 public record CreateMediaShareRequest(

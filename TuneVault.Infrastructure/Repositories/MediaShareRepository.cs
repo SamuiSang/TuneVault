@@ -106,5 +106,13 @@ namespace TuneVault.Infrastructure.Repositories
 
             return count > 0;
         }
+
+        public async Task<bool> DeleteSharedItemsAsync(string receiverId, IEnumerable<Guid> shareIds, CancellationToken cancellationToken = default)
+        {
+            if (shareIds == null || !shareIds.Any()) return false;
+            const string sql = "DELETE FROM MediaShare WHERE ReceiverId = @ReceiverId AND Id IN @ShareIds";
+            var affected = await _dbConnection.ExecuteAsync(new CommandDefinition(sql, new { ReceiverId = receiverId, ShareIds = shareIds }, cancellationToken: cancellationToken));
+            return affected > 0;
+        }
     }
 }

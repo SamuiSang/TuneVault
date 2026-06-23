@@ -301,7 +301,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     217, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692071/hai-trieu-nam_bnqgnf.mp3', 
     @Album3, -- Thuộc Album Đen Vâu
-    'U001'
+    'A003'
 ),
 (
     @Media2, 
@@ -312,7 +312,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     217, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690968/hai-trieu-nam_vbmfpd.mp4', 
     @Album3,
-    'U001'
+    'A003'
 ),
 (
     @Media3, 
@@ -323,7 +323,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     401, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692062/mang-tien-ve-cho-me_jmp48m.mp3', 
     @Album3,
-    'U001'
+    'A003'
 ),
 (
     @Media4, 
@@ -334,7 +334,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     401, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690866/mang-tien-ve-cho-me_msd2md.mp4', 
     @Album3,
-    'U001'
+    'A003'
 ),
 (
     @Media5, 
@@ -345,7 +345,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     252, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692074/tron-tim_fqhvel.mp3', 
     @Album3,
-    'U001'
+    'A003'
 ),
 (
     @Media6, 
@@ -356,7 +356,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     252, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690911/tron-tim_ty7sj8.mp4', 
     @Album3,
-    'U001'
+    'A003'
 ),
 (
     @Media7, 
@@ -367,7 +367,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     215, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692063/co-chac-yeu-la-day_e75vpv.mp3', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media8, 
@@ -378,7 +378,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     215, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690858/co-chac-yeu-la-day_o6vips.mp4', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media9, 
@@ -389,7 +389,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     234, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692067/come-my-way_tvgnof.mp3', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media10, 
@@ -400,7 +400,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     234, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690912/come-my-way_snxjig.mp4', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media11, 
@@ -411,7 +411,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     273, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692057/chay-ngay-di_qomjtn.mp3', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media12, 
@@ -422,7 +422,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     273, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690888/chay-ngay-di_sgnfph.mp4', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media13, 
@@ -433,7 +433,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     272, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692068/lac-troi_dygsfm.mp3', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media14, 
@@ -444,7 +444,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     272, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690970/lac-troi_ycg5hw.mp4', 
     @Album1,
-    'U001'
+    'A001'
 ),
 (
     @Media15, 
@@ -455,7 +455,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     219, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692056/baby_ddj9ob.mp3', 
     @Album4,
-    'U002'
+    'A004'
 ),
 (
     @Media16, 
@@ -466,7 +466,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     219, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690943/baby_bvnawx.mp4', 
     @Album4,
-    'U002'
+    'A004'
 ),
 (
     @Media17, 
@@ -477,7 +477,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     205, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692062/sorry_gv30v6.mp3', 
     @Album4,
-    'U002'
+    'A004'
 ),
 (
     @Media18, 
@@ -488,7 +488,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     205, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690908/sorry_jhbqcs.mp4', 
     @Album4,
-    'U002'
+    'A004'
 ),
 (
     @Media19, 
@@ -499,7 +499,7 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     262, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781692056/blinding-lights_oehkrw.mp3', 
     @Album2,
-    'U002'
+    'A002'
 ),
 (
     @Media20, 
@@ -510,5 +510,5 @@ INSERT INTO MediaItem(Id, Title, ThumbnailUrl, Description, Type, Duration, File
     262, 
     'https://res.cloudinary.com/dgwvj1a0i/video/upload/v1781690894/blinding-lights_nypdxd.mp4', 
     @Album2,
-    'U002'
+    'A002'
 );

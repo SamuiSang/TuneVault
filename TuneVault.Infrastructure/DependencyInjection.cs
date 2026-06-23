@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
@@ -28,6 +28,7 @@ namespace TuneVault.Infrastructure
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IPlayHistoryRepository, PlayHistoryRepository>();
             services.AddScoped<IFollowRepository, FollowRepository>();
+            services.AddScoped<IAlbumRepository, AlbumRepository>();
             
             // Đăng ký IDbConnection với vòng đời Transient cho Dapper
             services.AddTransient<IDbConnection>((sp) => new SqlConnection(connectionString));

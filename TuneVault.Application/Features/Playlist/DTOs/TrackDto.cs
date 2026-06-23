@@ -12,7 +12,7 @@ public class TrackDto
 
     
     public string ArtistName { get; set; } = string.Empty;
-
+    public string Type { get; set; } = "Audio";
     
     public int Duration { get; set; }
 

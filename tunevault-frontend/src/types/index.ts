@@ -27,6 +27,7 @@ export interface MediaItem {
   filePath: string;
   albumId?: string; 
   ownerId: string; // Người upload (AppUser)
+  ownerName?: string;
 }
 
 export interface Playlist {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import {
   searchMedia,
   searchArtists,
@@ -77,7 +77,18 @@ export default function Search() {
               <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 {/* Nút Play */}
                 <button 
-                  onClick={() => void player?.playTrack(item)}
+                  onClick={() => {
+                    const mappedItem = {
+                      id: item.id || item.Id,
+                      title: item.title || item.Title,
+                      thumbnailUrl: item.thumbnailUrl || item.ThumbnailUrl,
+                      ownerId: item.artistName || item.ArtistName || 'Unknown',
+                      type: 'Audio',
+                      duration: item.duration || item.Duration || 0,
+                      filePath: ''
+                    };
+                    void player?.playTrack(mappedItem as any);
+                  }}
                   className="bg-[#1ed760] text-black w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                   title="Phát nhạc"
                 >
@@ -101,9 +112,11 @@ export default function Search() {
           <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">Artists</h2>
           {artists.length === 0 && <p className="text-spotify-subtext">Không có nghệ sĩ nào khớp.</p>}
           {artists.map((artist) => (
-            <div key={artist.id} className="bg-zinc-800 p-4 rounded mb-2 font-bold hover:bg-zinc-700">
-              {artist.name}
-            </div>
+            <Link key={artist.id} to={`/artist/${artist.id}`} className="block">
+              <div className="bg-zinc-800 p-4 rounded mb-2 font-bold hover:bg-zinc-700">
+                {artist.name}
+              </div>
+            </Link>
           ))}
         </section>
 
@@ -111,9 +124,11 @@ export default function Search() {
           <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">Playlists</h2>
           {playlists.length === 0 && <p className="text-spotify-subtext">Không có playlist nào khớp.</p>}
           {playlists.map((playlist) => (
-            <div key={playlist.id} className="bg-zinc-800 p-4 rounded mb-2 font-bold hover:bg-zinc-700">
-              {playlist.name}
-            </div>
+            <Link key={playlist.id} to={`/playlist/${playlist.id}`} className="block">
+              <div className="bg-zinc-800 p-4 rounded mb-2 font-bold hover:bg-zinc-700">
+                {playlist.name}
+              </div>
+            </Link>
           ))}
         </section>
       </div>

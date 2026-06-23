@@ -56,7 +56,7 @@ public interface IMediaRepository
     /// <param name="artistId">ID của artist</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Danh sách media</returns>
-    Task<List<GetMediaResponse>> GetMediaByArtistAsync(Guid artistId, CancellationToken cancellationToken = default);
+    Task<List<GetMediaResponse>> GetMediaByArtistAsync(string artistId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lấy danh sách media của một album

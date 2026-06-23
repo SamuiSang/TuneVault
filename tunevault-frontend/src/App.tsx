@@ -12,7 +12,11 @@ import UploadMedia from './pages/UploadMedia';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import Favorites from './pages/Favorites'; // ---> THÊM IMPORT TRANG YÊU THÍCH
+import ArtistProfile from './pages/ArtistProfile';
 import VideoPlayerPage from './pages/VideoPlayerPage'; // ---> BƯỚC 1: THÊM DÒNG IMPORT NÀY
+import AllTracks from './pages/AllTracks';
+import AlbumDetailView from './pages/AlbumDetail';
 
 function App() {
   return (
@@ -28,10 +32,15 @@ function App() {
             <Route path="search" element={<Search />} />
             <Route path="library" element={<Library />} />
             <Route path="playlist/:id" element={<Playlist />} />
+            <Route path="album/:id" element={<AlbumDetailView />} />
+            <Route path="artist/:artistId" element={<ArtistProfile />} />
+            <Route path="favorites" element={<Favorites />} /> {/* ---> THÊM ROUTE YÊU THÍCH */}
             <Route path="share-inbox" element={<ShareInbox />} />
             <Route path="/upload" element={<UploadMedia />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="profile/:id" element={<Profile />} />
+            <Route path="tracks" element={<AllTracks />} />
           </Route>
 
           {/* ---> BƯỚC 2: THÊM ROUTE RIÊNG CHO VIDEO TẠI ĐÂY

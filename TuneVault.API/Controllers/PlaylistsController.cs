@@ -31,6 +31,14 @@ public class PlaylistsController : ControllerBase
         [FromBody] CreatePlaylistCommand command,
         CancellationToken cancellationToken)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Không tìm thấy thông tin xác thực (User Id).");
+        }
+        
+        command.OwnerId = userId;
+
         var result = await _mediator.Send(command, cancellationToken);
 
         return Ok(result);
@@ -143,6 +151,22 @@ public class PlaylistsController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetSharedWithMeQuery(userId),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// Xóa danh sách nội dung được chia sẻ với tôi
+    [HttpDelete("shared-with-me")]
+    public async Task<IActionResult> DeleteSharedItems(
+        [FromBody] IEnumerable<Guid> shareIds,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _mediator.Send(
+            new DeleteSharedItemCommand { ReceiverId = userId, ShareIds = shareIds },
             cancellationToken);
 
         return Ok(result);

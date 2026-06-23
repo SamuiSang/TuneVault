@@ -23,16 +23,19 @@ public class SearchRepository : ISearchRepository
                 m.Id,
                 m.Title,
                 m.Duration,
-                a.Name AS ArtistName,
+                m.Type,
+                COALESCE(a.UserName, o.UserName) AS ArtistName,
                 al.Title AS AlbumTitle,
                 m.ThumbnailUrl
             FROM MediaItem m
             LEFT JOIN MediaArtist ma ON ma.MediaItemId = m.Id
-            LEFT JOIN Artist a ON a.Id = ma.ArtistId
+            LEFT JOIN AppUser a ON a.Id = CAST(ma.ArtistId AS NVARCHAR(450))
+            LEFT JOIN AppUser o ON o.Id = m.OwnerId
             LEFT JOIN Album al ON al.Id = m.AlbumId
             WHERE
                 m.Title LIKE '%' + @Keyword + '%'
-                OR a.Name LIKE '%' + @Keyword + '%'
+                OR a.UserName LIKE '%' + @Keyword + '%'
+                OR o.UserName LIKE '%' + @Keyword + '%'
                 OR al.Title LIKE '%' + @Keyword + '%'
             ORDER BY m.Title;";
 
@@ -47,19 +50,20 @@ public class SearchRepository : ISearchRepository
         const string sql = @"
             SELECT
                 a.Id,
-                a.Name,
+                COALESCE(a.DisplayName, a.UserName) AS Name,
                 a.Bio AS Biography,
                 a.AvatarUrl AS ImageUrl,
-                COUNT(ma.MediaItemId) AS TotalTracks
-            FROM Artist a
-            LEFT JOIN MediaArtist ma ON ma.ArtistId = a.Id
-            WHERE a.Name LIKE '%' + @Keyword + '%'
+                COUNT(m.Id) AS TotalTracks
+            FROM AppUser a
+            LEFT JOIN MediaItem m ON m.OwnerId = a.Id
+            WHERE a.IsArtist = 1 AND (a.UserName LIKE '%' + @Keyword + '%' OR a.DisplayName LIKE '%' + @Keyword + '%')
             GROUP BY
                 a.Id,
-                a.Name,
+                a.UserName,
+                a.DisplayName,
                 a.Bio,
                 a.AvatarUrl
-            ORDER BY a.Name;";
+            ORDER BY a.UserName;";
 
         return await _db.QueryAsync<ArtistDto>(
             sql,
@@ -100,12 +104,12 @@ public class SearchRepository : ISearchRepository
             SELECT
                 Id,
                 UserName,
-                UserName AS DisplayName,
+                COALESCE(DisplayName, UserName) AS DisplayName,
                 AvatarUrl,
-                CAST(0 AS BIT) AS IsArtist
+                IsArtist
             FROM AppUser
             WHERE
-                UserName LIKE '%' + @Keyword + '%'
+                UserName LIKE '%' + @Keyword + '%' OR DisplayName LIKE '%' + @Keyword + '%'
             ORDER BY UserName;";
 
         return await _db.QueryAsync<UserSearchDto>(

@@ -59,8 +59,8 @@ const VideoPlayerPage: React.FC = () => {
       <div className="mt-6">
         <h1 className="text-2xl font-bold">{video.title}</h1>
         {/* Tên ca sĩ / Owner */}
-        <p className="mt-2 text-spotify-subtext">
-          {video.ownerId || 'Unknown Artist'}
+        <p className="text-spotify-subtext mt-2 text-lg">
+          {video.ownerName || video.ownerId || 'Unknown Artist'}
         </p>
         
         {/* Nếu có mô tả thì hiện */}

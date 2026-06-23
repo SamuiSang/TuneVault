@@ -54,7 +54,7 @@ public class IsFollowingUserQuery : IRequest<bool>
 public class IsFollowingArtistQuery : IRequest<bool>
 {
     public required string FollowerId { get; set; }
-    public required Guid ArtistId { get; set; }
+    public required string ArtistId { get; set; }
 }
 
 public class GetFollowingUsersQuery : IRequest<IEnumerable<FollowingUserDto>>
@@ -80,7 +80,7 @@ public class GetUserFollowersQuery : IRequest<IEnumerable<FollowerUserDto>>
 
 public class GetArtistFollowersQuery : IRequest<IEnumerable<FollowerUserDto>>
 {
-    public required Guid ArtistId { get; set; }
+    public required string ArtistId { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
 }
@@ -92,7 +92,7 @@ public class GetUserFollowerCountQuery : IRequest<int>
 
 public class GetArtistFollowerCountQuery : IRequest<int>
 {
-    public required Guid ArtistId { get; set; }
+    public required string ArtistId { get; set; }
 }
 
 public class GetFollowStatsQuery : IRequest<FollowStatsDto>

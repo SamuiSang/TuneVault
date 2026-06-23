@@ -72,9 +72,14 @@ public class FavoriteRepository : IFavoriteRepository
                 m.Duration,
                 m.Type,
                 m.FilePath,
+                m.ThumbnailUrl,
+                COALESCE(a.UserName, o.UserName) AS ArtistName,
                 f.CreatedAt as FavoritedAt
             FROM Favorite f
             INNER JOIN MediaItem m ON f.MediaItemId = m.Id
+            LEFT JOIN MediaArtist ma ON ma.MediaItemId = m.Id
+            LEFT JOIN AppUser a ON a.Id = CAST(ma.ArtistId AS NVARCHAR(450))
+            LEFT JOIN AppUser o ON o.Id = m.OwnerId
             WHERE f.UserId = @UserId
             ORDER BY f.CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";

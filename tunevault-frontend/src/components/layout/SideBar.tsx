@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiSearch, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
+import { FiHome, FiInbox, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { BiLibrary } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
@@ -15,6 +15,7 @@ const Sidebar = () => {
   const isActive = (path: string) => location.pathname === path ? "text-white" : "text-spotify-subtext";
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger để tải lại playlist
 
   // ---> BỔ SUNG: State và logic lấy danh sách playlist <---
   const [playlists, setPlaylists] = useState<any[]>([]);
@@ -36,7 +37,11 @@ const Sidebar = () => {
     };
 
     fetchPlaylists();
-  }, [user?.id]); // Tự động chạy lại nếu user thay đổi (đăng nhập/đăng xuất)
+
+    const handleUpdate = () => setRefreshTrigger(prev => prev + 1);
+    window.addEventListener('playlist_updated', handleUpdate);
+    return () => window.removeEventListener('playlist_updated', handleUpdate);
+  }, [user?.id, refreshTrigger]); // Chạy lại khi user đổi hoặc khi có trigger
 
   return (
     <>
@@ -77,15 +82,15 @@ const Sidebar = () => {
         <div className="flex-1 overflow-y-auto px-2 pb-2 custom-scrollbar">
 
           {/* Nút Bài hát đã thích */}
-          <div className="flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md cursor-pointer transition-colors group mb-2">
+          <Link to="/favorites" className={`flex items-center gap-3 p-2 hover:bg-spotify-highlight rounded-md cursor-pointer transition-colors group mb-2 ${isActive('/favorites')}`}>
             <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-blue-300 text-white rounded shadow-sm">
               <FaHeart className="text-xl" />
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-white">Bài hát đã thích</span>
+              <span className={`font-semibold ${location.pathname === '/favorites' ? 'text-white' : 'text-spotify-subtext group-hover:text-white'}`}>Bài hát đã thích</span>
               <span className="text-sm text-spotify-subtext">Danh sách phát • Tự động</span>
             </div>
-          </div>
+          </Link>
 
           {/* ---> ĐÃ SỬA: Danh sách Playlist thật từ CSDL <--- */}
           <ul className="flex flex-col">
@@ -125,9 +130,7 @@ const Sidebar = () => {
           onClose={() => setIsCreateModalOpen(false)}
           onSuccess={() => {
             setIsCreateModalOpen(false);
-            // Reload lại trang Library nếu user đang ở trang đó
-            if (location.pathname === '/library') window.location.reload();
-            // Sẽ tốt hơn nếu bạn có context quản lý reload playlist chung, nhưng gọi window reload tạm thời cũng được
+            setRefreshTrigger(prev => prev + 1); // Kích hoạt tải lại danh sách
           }}
         />
       )}

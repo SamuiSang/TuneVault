@@ -22,16 +22,14 @@ public class PlaylistRepository : IPlaylistRepository
                 Id,
                 Name,
                 OwnerId,
-                IsPublic,
-                CreatedAt
+                IsPublic
             )
             VALUES
             (
                 @Id,
                 @Name,
                 @OwnerId,
-                @IsPublic,
-                @CreatedAt
+                @IsPublic
             );";
 
         await _db.ExecuteAsync(sql, playlist);
@@ -156,14 +154,19 @@ public class PlaylistRepository : IPlaylistRepository
                 m.Id,
                 m.Title,
                 m.Duration,
-                a.Name AS ArtistName,
+                m.Type,
+                COALESCE(a.UserName, o.UserName) AS ArtistName,
                 al.Title AS AlbumTitle,
                 m.ThumbnailUrl
             FROM PlaylistTrack pt
             INNER JOIN MediaItem m
                 ON m.Id = pt.MediaItemId
-            LEFT JOIN Artist a
-                ON a.Id = m.ArtistId
+            LEFT JOIN MediaArtist ma
+                ON ma.MediaItemId = m.Id
+            LEFT JOIN AppUser a
+                ON a.Id = CAST(ma.ArtistId AS NVARCHAR(450))
+            LEFT JOIN AppUser o
+                ON o.Id = m.OwnerId
             LEFT JOIN Album al
                 ON al.Id = m.AlbumId
             WHERE pt.PlaylistId = @PlaylistId;";

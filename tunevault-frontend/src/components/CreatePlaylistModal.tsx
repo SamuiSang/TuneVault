@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { createPlaylist } from '../services/playlistService';
+import { useAuth } from '../contexts/AuthContext';
 
 // ---> BỔ SUNG CHO TUÂN: Modal Tạo Playlist Mới <---
 interface CreatePlaylistModalProps {
@@ -13,6 +14,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({ onClose, onSu
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const { user } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +24,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({ onClose, onSu
         }
 
         setIsLoading(true);
-        const ownerId = localStorage.getItem('userId') || '';
+        const ownerId = user?.id || '';
 
         try {
             // Ép kiểu payload do backend yêu cầu OwnerId và IsPublic

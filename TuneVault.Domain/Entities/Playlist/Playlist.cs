@@ -1,4 +1,4 @@
-﻿namespace TuneVault.Domain.Entities;
+namespace TuneVault.Domain.Entities;
 
 public class Playlist
 {
@@ -9,6 +9,7 @@ public class Playlist
     public required string Name { get; set; }
     public required bool IsPublic { get; set; }
     public string? CoverImageUrl { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Khóa ngoại (FK)
     public required string OwnerId { get; set; } // FK: Trỏ đến AppUser

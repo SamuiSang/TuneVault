@@ -20,7 +20,7 @@ public class SearchController : ControllerBase
 
     [HttpGet("media")]
     public async Task<IActionResult> SearchMedia(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -32,7 +32,7 @@ public class SearchController : ControllerBase
 
     [HttpGet("artists")]
     public async Task<IActionResult> SearchArtists(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -44,7 +44,7 @@ public class SearchController : ControllerBase
 
     [HttpGet("playlists")]
     public async Task<IActionResult> SearchPlaylists(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -56,7 +56,7 @@ public class SearchController : ControllerBase
 
     [HttpGet("users")]
     public async Task<IActionResult> SearchUsers(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
