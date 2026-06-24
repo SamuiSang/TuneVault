@@ -81,7 +81,11 @@ const Auth = () => {
       }
     } catch (err: any) {
       console.error("Lỗi chi tiết từ hệ thống:", err);
-      setError(err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra khi kết nối tới máy chủ.');
+      let errorMsg = err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra khi kết nối tới máy chủ.';
+      if (typeof errorMsg === 'object') {
+        errorMsg = err.response?.data?.title || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+      }
+      setError(errorMsg as string);
     }
   };
 

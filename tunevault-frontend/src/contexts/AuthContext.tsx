@@ -33,6 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             decoded.isArtist === '1' || 
             decoded["isArtist"] === true
       };
+      localStorage.setItem('userId', userInfo.id);
       setUser(userInfo);
       setToken(jwtToken);
     } catch (error) {
@@ -46,9 +47,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await api.get('/auth/profile');
       const profile = response.data;
       if (profile?.id) {
+        localStorage.setItem('userId', profile.id);
         setUser({
           id: profile.id,
-          userName: profile.userName || profile.userName || '',
+          userName: profile.userName || profile.displayName || '',
           email: profile.email || '',
           bio: profile.bio || undefined,
           avatarUrl: profile.avatarUrl || undefined,
@@ -82,6 +84,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     setToken(null);
     setUser(null);
   };

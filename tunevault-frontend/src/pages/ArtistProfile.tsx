@@ -132,7 +132,7 @@ const ArtistProfile = () => {
                 >
                   +
                 </button>
-                <span className="text-sm text-gray-400">03:45</span>
+                <span className="text-sm text-gray-400">{track.duration || "03:45"}</span>
               </div>
             </div>
           ))
