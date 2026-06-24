@@ -20,8 +20,15 @@ public class FollowsController : ControllerBase
     public async Task<IActionResult> Follow(
         FollowArtistCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
     }
 
     [HttpGet("followers/{userId}")]

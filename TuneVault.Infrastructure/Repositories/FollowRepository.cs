@@ -44,8 +44,8 @@ public class FollowRepository : IFollowRepository
             IF NOT EXISTS (SELECT 1 FROM Follow WHERE FollowerId = @FollowerId AND FolloweeId = @FolloweeId)
             BEGIN
                 DECLARE @NewId UNIQUEIDENTIFIER = NEWID();
-                INSERT INTO Follow (Id, FollowerId, FolloweeId, ArtistId, CreatedAt)
-                VALUES (@NewId, @FollowerId, @FolloweeId, NULL, GETDATE());
+                INSERT INTO Follow (Id, FollowerId, FolloweeId, CreatedAt)
+                VALUES (@NewId, @FollowerId, @FolloweeId, GETDATE());
                 SELECT @NewId;
             END
             ELSE
@@ -194,7 +194,7 @@ public class FollowRepository : IFollowRepository
                 f.CreatedAt as FollowedAt
             FROM Follow f
             INNER JOIN AppUser u ON f.FollowerId = u.Id
-            WHERE f.FolloweeId = @FolloweeId AND f.FolloweeId IS NOT NULL AND (SELECT IsArtist FROM AppUser WHERE Id = @FolloweeId) = 0
+            WHERE f.FolloweeId = @FolloweeId AND f.FolloweeId IS NOT NULL
             ORDER BY f.CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 

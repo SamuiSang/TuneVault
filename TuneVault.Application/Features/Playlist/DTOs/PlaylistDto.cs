@@ -11,9 +11,9 @@ public class PlaylistDto
     
     public bool IsPublic { get; set; }
 
-    
     public string OwnerId { get; set; } = string.Empty;
 
+    public string? CoverImageUrl { get; set; }
     
     public int TotalTracks { get; set; }
 }

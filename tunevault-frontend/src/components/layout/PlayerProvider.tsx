@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import type { MediaItem } from '../../types';
 import { PlayerContext } from '../../contexts/PlayerContext';
 import { playerService } from '../../services/playerService';
+import { mediaService } from '../../services/mediaService';
 
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [currentTrack, setCurrentTrack] = useState<MediaItem | null>(null);
@@ -29,7 +30,30 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   // ---> BỔ SUNG CHO HIẾU: Các hàm điều khiển Queue <---
   const setQueue = async (tracks: MediaItem[], startIndex: number = 0) => {
-    if (tracks.length > 0) {
+    if (tracks.length === 1) {
+      const targetTrack = tracks[0];
+      try {
+        const allMedia = await mediaService.getAllMedia();
+        // Lọc cùng loại (Audio hoặc Video)
+        const sameTypeMedia = allMedia.filter(t => t.type === targetTrack.type && t.id !== targetTrack.id);
+        
+        // Cùng nghệ sĩ lên đầu
+        const sameArtist = sameTypeMedia.filter(t => t.ownerId === targetTrack.ownerId);
+        // Khác nghệ sĩ thì random
+        const others = sameTypeMedia.filter(t => t.ownerId !== targetTrack.ownerId).sort(() => 0.5 - Math.random());
+        
+        const newQueue = [targetTrack, ...sameArtist, ...others].slice(0, 50); // Giới hạn 50 bài
+        
+        setQueueState(newQueue);
+        setCurrentIndex(0);
+        await playTrack(targetTrack);
+      } catch (e) {
+        console.error("Lỗi tự động tạo queue:", e);
+        setQueueState(tracks);
+        setCurrentIndex(0);
+        await playTrack(tracks[0]);
+      }
+    } else if (tracks.length > 0) {
       setQueueState(tracks);
       setCurrentIndex(startIndex);
       await playTrack(tracks[startIndex]);

@@ -5,10 +5,12 @@ namespace TuneVault.Application.Features.Playlist.Queries.GetPlaylistDetail;
 
 public class GetPlaylistDetailQuery : IRequest<PlaylistDetailDto?>
 {
-    public GetPlaylistDetailQuery(Guid playlistId)
+    public Guid PlaylistId { get; set; }
+    public string? UserId { get; set; }
+
+    public GetPlaylistDetailQuery(Guid playlistId, string? userId = null)
     {
         PlaylistId = playlistId;
+        UserId = userId;
     }
-
-    public Guid PlaylistId { get; set; }
 }

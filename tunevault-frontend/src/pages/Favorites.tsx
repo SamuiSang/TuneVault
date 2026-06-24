@@ -3,10 +3,12 @@ import { interactionService, type MediaItemDto } from "../services/interactionSe
 import { useAuth } from "../contexts/AuthContext";
 import { FaHeart, FaPlay } from "react-icons/fa";
 import { usePlayer } from "../hooks/usePlayer";
+import { useNavigate } from "react-router-dom";
 
 export default function Favorites() {
   const { user } = useAuth();
   const { setQueue } = usePlayer();
+  const navigate = useNavigate();
   const [likedSongs, setLikedSongs] = useState<MediaItemDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +37,9 @@ export default function Favorites() {
   }, [user?.id]);
 
   const handlePlayAll = () => {
-    if (likedSongs.length > 0) {
-      setQueue(likedSongs as any);
+    const audioTracks = likedSongs.filter(t => t.type !== 'Video');
+    if (audioTracks.length > 0) {
+      setQueue(audioTracks as any);
     }
   };
 
@@ -86,19 +89,46 @@ export default function Favorites() {
                 key={track.id}
                 className="flex items-center justify-between bg-zinc-900/60 hover:bg-zinc-800/80 transition rounded-lg p-4 group"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-500 w-4 text-center font-bold text-sm">
+                <div className="flex items-center gap-4 flex-1">
+                  <span className="text-gray-500 w-4 text-center font-bold text-sm group-hover:hidden">
                     {index + 1}
                   </span>
+                  <span className="w-4 text-center hidden group-hover:block text-white" onClick={(e) => {
+                    e.stopPropagation();
+                    if (track.type === 'Video') {
+                      navigate(`/video/${track.id}`, { state: { videoData: track } });
+                    } else {
+                      const nextAudioTracks = likedSongs.slice(index + 1).filter(t => t.type !== 'Video');
+                      setQueue([track, ...nextAudioTracks] as any);
+                    }
+                  }}><FaPlay className="text-xs cursor-pointer" /></span>
                   <img
                     src={track.thumbnailUrl || "default-cover.png"}
                     alt="cover"
-                    className="w-10 h-10 rounded shadow object-cover"
+                    className="w-10 h-10 rounded shadow object-cover cursor-pointer"
+                    onClick={() => {
+                      if (track.type === 'Video') {
+                        navigate(`/video/${track.id}`, { state: { videoData: track } });
+                      } else {
+                        const nextAudioTracks = likedSongs.slice(index + 1).filter(t => t.type !== 'Video');
+                        setQueue([track, ...nextAudioTracks] as any);
+                      }
+                    }}
                   />
-                  <div>
-                    <p className="font-medium text-white group-hover:text-spotify-primary transition-colors cursor-pointer" onClick={() => setQueue([track as any])}>
-                      {track.title}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center min-w-0">
+                      {track.type === 'Video' && <span className="mr-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold flex-shrink-0">VIDEO</span>}
+                      <p className="font-medium text-white group-hover:text-spotify-primary transition-colors cursor-pointer truncate" onClick={() => {
+                        if (track.type === 'Video') {
+                          navigate(`/video/${track.id}`, { state: { videoData: track } });
+                        } else {
+                          const nextAudioTracks = likedSongs.slice(index + 1).filter(t => t.type !== 'Video');
+                          setQueue([track, ...nextAudioTracks] as any);
+                        }
+                      }}>
+                        {track.title}
+                      </p>
+                    </div>
                     <p className="text-sm text-gray-400">
                       {track.artistName || "Nghệ sĩ ẩn danh"}
                     </p>

@@ -31,11 +31,18 @@ namespace TuneVault.Application.Features.Media.Commands
                 throw new ArgumentException($"Người nhận '{request.ReceiverUsername}' không tồn tại trong hệ thống.");
             }
 
+            // Chặn chia sẻ cho chính bản thân
+            if (request.SenderId == receiverId)
+            {
+                throw new ArgumentException("Bạn không thể tự chia sẻ cho chính mình.");
+            }
+
             // 🌟 2. CHỐNG SPAM: Truyền biến receiverId vừa tìm được vào đây
             bool isSpam = await _mediaShareRepository.HasSharedInLast24HoursAsync(
                 request.SenderId, 
                 receiverId, // Dùng biến cục bộ, KHÔNG có chữ "request." ở trước
                 request.MediaItemId, 
+                request.PlaylistId, // Thêm PlaylistId
                 cancellationToken
             );
 
@@ -65,7 +72,7 @@ namespace TuneVault.Application.Features.Media.Commands
                     SenderId = request.SenderId,
                     MediaItemId = request.MediaItemId,
                     PlaylistId = request.PlaylistId,
-                    Message = $"Bạn có một bài hát mới được chia sẻ!"
+                    Message = request.PlaylistId.HasValue ? "Bạn có một Playlist mới được chia sẻ!" : "Bạn có một bài hát mới được chia sẻ!"
                 },
                 cancellationToken
             );

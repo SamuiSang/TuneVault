@@ -72,30 +72,60 @@ public class RemovePlayHistoryCommandHandler : IRequestHandler<RemovePlayHistory
 public class FollowUserCommandHandler : IRequestHandler<FollowUserCommand, Guid>
 {
     private readonly IFollowRepository _followRepository;
+    private readonly IMediator _mediator;
+    private readonly IUserRepository _userRepository;
 
-    public FollowUserCommandHandler(IFollowRepository followRepository)
+    public FollowUserCommandHandler(IFollowRepository followRepository, IMediator mediator, IUserRepository userRepository)
     {
         _followRepository = followRepository;
+        _mediator = mediator;
+        _userRepository = userRepository;
     }
 
     public async Task<Guid> Handle(FollowUserCommand request, CancellationToken cancellationToken)
     {
-        return await _followRepository.FollowUserAsync(request.FollowerId, request.FolloweeId);
+        var id = await _followRepository.FollowUserAsync(request.FollowerId, request.FolloweeId);
+
+        var follower = await _userRepository.GetByIdAsync(request.FollowerId);
+        var followerName = follower?.DisplayName ?? follower?.UserName ?? "Ai đó";
+
+        await _mediator.Send(new TuneVault.Application.Features.Notifications.Commands.CreateNotification.CreateNotificationCommand(
+            request.FolloweeId,
+            "Follow",
+            $"{{\"message\":\"{followerName} vừa theo dõi bạn!\", \"followerId\":\"{request.FollowerId}\"}}"
+        ), cancellationToken);
+
+        return id;
     }
 }
 
 public class FollowArtistCommandHandler : IRequestHandler<FollowArtistCommand, Guid>
 {
     private readonly IFollowRepository _followRepository;
+    private readonly IMediator _mediator;
+    private readonly IUserRepository _userRepository;
 
-    public FollowArtistCommandHandler(IFollowRepository followRepository)
+    public FollowArtistCommandHandler(IFollowRepository followRepository, IMediator mediator, IUserRepository userRepository)
     {
         _followRepository = followRepository;
+        _mediator = mediator;
+        _userRepository = userRepository;
     }
 
     public async Task<Guid> Handle(FollowArtistCommand request, CancellationToken cancellationToken)
     {
-        return await _followRepository.FollowArtistAsync(request.FollowerId, request.ArtistId);
+        var id = await _followRepository.FollowArtistAsync(request.FollowerId, request.ArtistId);
+
+        var follower = await _userRepository.GetByIdAsync(request.FollowerId);
+        var followerName = follower?.DisplayName ?? follower?.UserName ?? "Ai đó";
+
+        await _mediator.Send(new TuneVault.Application.Features.Notifications.Commands.CreateNotification.CreateNotificationCommand(
+            request.ArtistId,
+            "Follow",
+            $"{{\"message\":\"{followerName} vừa theo dõi bạn!\", \"followerId\":\"{request.FollowerId}\"}}"
+        ), cancellationToken);
+
+        return id;
     }
 }
 

@@ -15,7 +15,8 @@ const Home = () => {
   const { user } = useAuth();
 
   const [historyItems, setHistoryItems] = useState<MediaItem[]>([]);
-  const [allMedia, setAllMedia] = useState<MediaItem[]>([]);
+  const [audioItems, setAudioItems] = useState<MediaItem[]>([]);
+  const [videoItems, setVideoItems] = useState<MediaItem[]>([]);
   const [popularArtists, setPopularArtists] = useState<any[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -40,8 +41,10 @@ const Home = () => {
           console.error('Error fetching artists:', e);
         }
         
-        const allMedia = allMediaData.filter((item: any) => item.type !== 'Video');
-        setAllMedia(allMedia);
+        const allAudio = allMediaData.filter((item: any) => item.type !== 'Video');
+        const allVideo = allMediaData.filter((item: any) => item.type === 'Video');
+        setAudioItems(allAudio);
+        setVideoItems(allVideo);
 
         // 1. Fetch History
         let recentItems: MediaItem[] = [];
@@ -49,7 +52,7 @@ const Home = () => {
           try {
             const historyRes = await api.get(`/Interactions/history/${user.id}`);
             if (historyRes.data?.success && historyRes.data.data?.length > 0) {
-              recentItems = historyRes.data.data.map((h: any) => ({
+              const mappedItems = historyRes.data.data.map((h: any) => ({
                 id: h.mediaId, // map MediaId to id
                 title: h.title,
                 type: h.type,
@@ -58,32 +61,27 @@ const Home = () => {
                 ownerId: h.ownerId,
                 ownerName: h.ownerName
               }));
+              // Lọc trùng lặp ID
+              const uniqueItems: MediaItem[] = [];
+              const seen = new Set();
+              for (const item of mappedItems) {
+                  if (!seen.has(item.id)) {
+                      seen.add(item.id);
+                      uniqueItems.push(item);
+                  }
+              }
+              recentItems = uniqueItems.slice(0, 5);
             }
           } catch (e) {
             console.error('Error fetching history:', e);
           }
         }
 
-        if (recentItems.length === 0) {
-          // Fallback to random/first media items if no history
-          recentItems = allMedia.slice(0, 5);
-        } else {
-          // Lọc trùng lặp ID
-          const uniqueItems = [];
-          const seen = new Set();
-          for (const item of recentItems) {
-              if (!seen.has(item.id)) {
-                  seen.add(item.id);
-                  uniqueItems.push(item);
-              }
-          }
-          recentItems = uniqueItems.slice(0, 5);
-        }
         setHistoryItems(recentItems);
 
         // 3. Popular Artists
         if (artistsRes.data) {
-          setPopularArtists(artistsRes.data.slice(0, 6)); // Lấy 6 nghệ sĩ phổ biến
+          setPopularArtists(artistsRes.data.slice(0, 5)); // Lấy 5 nghệ sĩ phổ biến
         }
 
       } catch (error) {
@@ -123,9 +121,9 @@ const Home = () => {
   const MediaCard = ({ item }: { item: MediaItem }) => (
     <div
       onClick={() => handleMediaClick(item)}
-      className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group relative"
+      className="bg-spotify-card hover:bg-spotify-card-hover p-3 rounded-md transition-all duration-300 cursor-pointer group/card relative"
     >
-      <div className="relative group mb-4">
+      <div className="relative mb-4">
         <img
           src={item.thumbnailUrl || 'default-cover.png'}
           alt={item.title}
@@ -134,18 +132,18 @@ const Home = () => {
 
         <button 
           onClick={(e) => { e.stopPropagation(); setSelectedMediaId(item.id); setIsAddModalOpen(true); }}
-          className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 hover:scale-105 z-10"
+          className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-black/80 hover:scale-105 z-10"
           title="Thêm vào Playlist"
         >
           +
         </button>
 
-        <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-300 shadow-[0_8px_8px_rgba(0,0,0,0.3)] hover:scale-105 text-black z-10">
+        <button className="absolute bottom-2 right-2 w-10 h-10 bg-spotify-primary rounded-full flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300 shadow-lg hover:scale-110 text-black z-10">
           <FaPlay className="ml-1 text-lg" />
         </button>
       </div>
 
-      <h3 className="font-bold text-[15px] mb-1.5 line-clamp-1 text-white" title={item.title}>
+      <h3 className="font-bold text-[15px] mb-1.5 line-clamp-2 text-white min-h-[45px]" title={item.title}>
         {item.title}
       </h3>
 
@@ -162,36 +160,65 @@ const Home = () => {
 
   return (
     <div className="text-spotify-text pb-24 px-2">
-      {/* SECTION 1: For You */}
+      {/* SECTION 1: Lịch sử nghe gần đây (Chỉ hiển thị khi có lịch sử) */}
+      {historyItems.length > 0 && (
+        <section className="mb-10 mt-2">
+          <div className="flex justify-between items-end mb-4">
+              <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Lịch sử nghe gần đây</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {historyItems.map((item) => (
+              <MediaCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 2: Dành cho bạn */}
       <section className="mb-10 mt-2">
         <div className="flex justify-between items-end mb-4">
-            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">For you</h2>
-            <button 
-              onClick={() => navigate('/tracks')}
-              className="text-sm text-spotify-subtext font-bold hover:underline"
-            >
-              Show all
-            </button>
+            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Dành cho bạn</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {(() => {
-            // Merge history and all media, deduplicate, take 12 items (2 rows of 6)
-            const mixedItems = [
-              ...historyItems, 
-              ...allMedia.filter(a => !historyItems.some(h => h.id === a.id))
-            ].slice(0, 12);
-            
-            return mixedItems.map((item) => (
+            const randomAudios = [...audioItems].sort(() => 0.5 - Math.random()).slice(0, 5);
+            return randomAudios.map((item) => (
               <MediaCard key={item.id} item={item} />
             ));
           })()}
         </div>
       </section>
 
-      {/* SECTION 2: Popular Artists */}
+      {/* SECTION 2: Nhạc MP3 */}
+      <section className="mb-10 mt-2">
+        <div className="flex justify-between items-end mb-4">
+            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Nhạc (MP3)</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {audioItems.slice(0, 5).map((item) => (
+            <MediaCard key={item.id} item={item} />
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 3: Video MV MP4 */}
+      {videoItems.length > 0 && (
+        <section className="mb-10 mt-2">
+          <div className="flex justify-between items-end mb-4">
+              <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Video MV (MP4)</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {videoItems.slice(0, 5).map((item) => (
+              <MediaCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 4: Popular Artists */}
       <section className="mb-10">
         <div className="flex justify-between items-end mb-4">
-            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Popular artists</h2>
+            <h2 className="text-2xl font-bold hover:underline cursor-pointer text-white">Nghệ sĩ phổ biến</h2>
             <button 
               onClick={() => navigate('/search')}
               className="text-sm text-spotify-subtext font-bold hover:underline"
@@ -199,7 +226,7 @@ const Home = () => {
               Show all
             </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {popularArtists.map((artist) => (
             <div
               key={artist.id}
@@ -223,7 +250,7 @@ const Home = () => {
                 </div>
               </div>
 
-              <h3 className="font-bold text-[16px] mb-1 line-clamp-1 text-white">
+              <h3 className="font-bold text-[16px] mb-1 line-clamp-2 text-white min-h-[48px]">
                 {artist.name || artist.displayName || artist.userName}
               </h3>
               <p className="text-sm text-spotify-subtext">Artist</p>

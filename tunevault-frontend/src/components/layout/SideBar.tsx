@@ -51,11 +51,6 @@ const Sidebar = () => {
           <FiHome className="text-[28px]" /> Trang chủ
         </Link>
 
-
-        <Link to="/library" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/library')}`}>
-          <BiLibrary className="text-[28px]" /> Thư viện
-        </Link>
-
         <Link to="/share-inbox" className={`flex items-center gap-4 font-bold hover:text-white transition-colors ${isActive('/share-inbox')}`}>
           <FiInbox className="text-[28px]" /> Hộp thư
         </Link>

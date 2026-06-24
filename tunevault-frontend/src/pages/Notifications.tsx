@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 // Import các component UI khác của team (giữ nguyên)
 import { FiBell } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
+import { useAuth } from '../contexts/AuthContext';
+
 const Notifications = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,8 +16,7 @@ const Notifications = () => {
       try {
         setLoading(true);
         
-        // ---> BỔ SUNG CHO CHIẾN: Lấy userId từ localStorage <---
-        const userId = localStorage.getItem('userId');
+        const userId = user?.id;
         
         // Kiểm tra an toàn nếu user chưa đăng nhập
         if (!userId) {
@@ -23,14 +25,17 @@ const Notifications = () => {
             return;
         }
 
-        // ---> BỔ SUNG CHO CHIẾN: Sửa lại URL chuẩn xác <---
-        // Code cũ bị lỗi: 
-        // const response = await axios.get('https://localhost:7277/api/notifications');
+        const response = await api.get(`/notifications/user/${userId}`);
         
-        // Code mới: Truyền userId vào đường dẫn endpoint
-        const response = await axios.get(`https://localhost:7277/api/notifications/user/${userId}`);
+        const responseData = response.data.data || response.data;
+        let notificationsArray = [];
+        if (Array.isArray(responseData)) {
+            notificationsArray = responseData;
+        } else if (responseData && Array.isArray(responseData.notifications)) {
+            notificationsArray = responseData.notifications;
+        }
         
-        setNotifications(response.data);
+        setNotifications(notificationsArray);
       } catch (error) {
         console.error('Lỗi khi tải thông báo:', error);
         toast.error('Không thể tải danh sách thông báo!');
@@ -40,7 +45,7 @@ const Notifications = () => {
     };
 
     fetchNotifications();
-  }, []);
+  }, [user?.id]);
 
   if (loading) {
     return (
@@ -63,22 +68,60 @@ const Notifications = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {notifications.map((notif, index) => (
+          {notifications.map((notif, index) => {
+            let messageText = notif.message || notif.content || notif.Message || notif.Content;
+            
+            if (!messageText && notif.payloadJson) {
+              try {
+                const payload = typeof notif.payloadJson === 'string' ? JSON.parse(notif.payloadJson) : notif.payloadJson;
+                messageText = payload?.message || payload?.Message || payload?.content || payload?.Content;
+              } catch (e) {
+                console.error("Lỗi parse JSON:", e);
+              }
+            } 
+            
+            if (!messageText) {
+                // Thử check nếu notif.payload là object (trường hợp backend trả về thẳng payload)
+                if (notif.payload) {
+                    messageText = notif.payload?.message || notif.payload?.Message || notif.payload?.content || notif.payload?.Content;
+                }
+            }
+
+            // Xử lý thông báo cũ (lúc chưa có trường message)
+            if (!messageText) {
+                const type = notif.type || notif.Type;
+                if (type === 'MediaShare') {
+                    const payload = typeof notif.payloadJson === 'string' ? JSON.parse(notif.payloadJson) : (notif.payloadJson || notif.payload || {});
+                    messageText = payload?.PlaylistId || payload?.playlistId 
+                        ? "Bạn có một Playlist mới được chia sẻ!" 
+                        : "Bạn có một bài hát mới được chia sẻ!";
+                } else if (type === 'Follow') {
+                    messageText = "Có người vừa theo dõi bạn!";
+                } else {
+                    messageText = "Bạn có một thông báo mới!";
+                }
+            }
+
+            // Fix múi giờ: C# Backend thường trả về UTC ("2026-06-24T04:53:00") nhưng thiếu chữ Z
+            // Trình duyệt sẽ hiểu nhầm là giờ Local. Thêm 'Z' để ép nó về UTC và convert sang Local.
+            const dateStr = notif.createdAt?.endsWith('Z') ? notif.createdAt : notif.createdAt + 'Z';
+
+            return (
             <div 
               key={index} 
               className={`p-4 rounded-lg flex items-center justify-between transition-colors ${notif.isRead ? 'bg-zinc-800' : 'bg-zinc-700 border-l-4 border-[#1ed760]'}`}
             >
               <div className="flex flex-col">
-                <span className="font-medium">{notif.message || notif.content}</span>
+                <span className="font-medium">{messageText}</span>
                 <span className="text-xs text-gray-400 mt-1">
-                  {new Date(notif.createdAt).toLocaleString('vi-VN')}
+                  {new Date(dateStr).toLocaleString('vi-VN')}
                 </span>
               </div>
               {!notif.isRead && (
                 <span className="w-3 h-3 bg-[#1ed760] rounded-full shadow-[0_0_8px_#1ed760]"></span>
               )}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

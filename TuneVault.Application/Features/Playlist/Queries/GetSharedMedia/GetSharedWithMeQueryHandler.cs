@@ -18,9 +18,18 @@ namespace TuneVault.Application.Features.Playlist.Queries.GetSharedMedia
         public async Task<BaseResponse<IEnumerable<SharedMediaDto>>> Handle(GetSharedWithMeQuery request, CancellationToken cancellationToken)
         {
             var sql = @"
-                SELECT ms.Id AS ShareId, m.Id AS MediaId, m.Title, m.Type, m.FilePath, m.ThumbnailUrl, u.UserName AS SenderName, ms.SharedAt
+                SELECT ms.Id AS ShareId, 
+                       m.Id AS MediaId, 
+                       p.Id AS PlaylistId,
+                       COALESCE(m.Title, p.Name) AS Title, 
+                       CASE WHEN p.Id IS NOT NULL THEN 'Playlist' ELSE m.Type END AS Type, 
+                       m.FilePath, 
+                       COALESCE(m.ThumbnailUrl, p.CoverImageUrl) AS ThumbnailUrl, 
+                       u.UserName AS SenderName, 
+                       ms.SharedAt
                 FROM MediaShare ms
-                INNER JOIN MediaItem m ON ms.MediaItemId = m.Id
+                LEFT JOIN MediaItem m ON ms.MediaItemId = m.Id
+                LEFT JOIN Playlist p ON ms.PlaylistId = p.Id
                 INNER JOIN AppUser u ON ms.SenderId = u.Id
                 WHERE ms.ReceiverId = @UserId ORDER BY ms.SharedAt DESC";
 

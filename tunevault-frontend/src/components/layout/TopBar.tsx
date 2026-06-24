@@ -187,16 +187,28 @@ const Topbar = () => {
       }
     };
     void fetchUnreadCount();
+
+    const handleNewNotification = () => {
+       setUnreadCount(prev => prev + 1);
+    };
+    window.addEventListener('new_notification', handleNewNotification);
+
+    return () => {
+       window.removeEventListener('new_notification', handleNewNotification);
+    };
   }, [user?.id]);
 
-  // Khi user click chuông: đánh dấu tất cả đã đọc và reset badge về 0
+  // Khi user click chuông: đánh dấu tất cả đã đọc và reset badge về 0, chuyển tới trang notifications
   const handleBellClick = async () => {
-    if (!user?.id || unreadCount === 0) return;
-    setUnreadCount(0); // Cập nhật UI ngay lập tức (optimistic update)
-    try {
-      await markAllNotificationsAsRead(user.id);
-    } catch {
-      // Nếu lỗi, có thể fetch lại để đồng bộ
+    if (!user?.id) return;
+    navigate('/notifications');
+    if (unreadCount > 0) {
+      setUnreadCount(0); // Cập nhật UI ngay lập tức (optimistic update)
+      try {
+        await markAllNotificationsAsRead(user.id);
+      } catch {
+        // Nếu lỗi, có thể fetch lại để đồng bộ
+      }
     }
   };
 
@@ -210,7 +222,7 @@ const Topbar = () => {
   };
 
   return (
-    <header className="h-16 bg-spotify-base flex items-center justify-between px-6 sticky top-0 z-10 gap-4">
+    <header className="h-16 bg-spotify-base flex items-center justify-between px-6 sticky top-0 z-40 gap-4">
       {/* ---> LEFT PORTION: HOME & SEARCH <--- */}
       <div className="flex items-center gap-2 flex-1 max-w-2xl">
         {/* Nút Home */}
@@ -272,7 +284,7 @@ const Topbar = () => {
 
           {/* Popup tìm kiếm (Lịch sử & Gợi ý) */}
           {isSearchFocused && (
-            <div className="absolute top-full left-0 w-full mt-2 bg-[#282828] rounded-lg shadow-2xl p-4 z-50">
+            <div className="absolute top-[calc(100%+2px)] left-0 w-full bg-[#282828] rounded-lg shadow-2xl p-4 z-50">
               {!searchParams.get('q') ? (
                 <>
                   <h3 className="text-white font-bold text-lg mb-4">Lịch sử tìm kiếm</h3>

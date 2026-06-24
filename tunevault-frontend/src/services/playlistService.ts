@@ -16,6 +16,8 @@ export interface CreatePlaylistRequest {
 export interface UpdatePlaylistRequest {
   name: string;
   description?: string;
+  coverImageUrl?: string;
+  isPublic?: boolean;
 }
 
 /**

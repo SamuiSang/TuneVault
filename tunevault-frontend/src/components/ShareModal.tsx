@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface ShareModalProps {
-    mediaId: string;
+    mediaId?: string;
+    playlistId?: string;
     mediaTitle: string;
     onClose: () => void;
 }
@@ -17,7 +18,7 @@ interface UserSearchDto {
     isArtist: boolean;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ mediaId, playlistId, mediaTitle, onClose }) => {
     const navigate = useNavigate();
     const [receiverUsername, setReceiverUsername] = useState('');
     const [isSharing, setIsSharing] = useState(false);
@@ -90,7 +91,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ mediaId, mediaTitle, onClose })
         try {
             const response = await api.post('/media/share', {
                 receiverUsername: username,
-                mediaItemId: mediaId
+                mediaItemId: mediaId || null,
+                playlistId: playlistId || null
             });
 
             if (response.data?.success) {

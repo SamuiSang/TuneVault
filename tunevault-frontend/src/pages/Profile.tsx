@@ -5,6 +5,8 @@ import { FiEdit2, FiCopy, FiCheckCircle, FiStar } from 'react-icons/fi';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FollowButton from '../components/layout/FollowButton';
+import { interactionService } from '../services/interactionService';
+import FollowListModal from '../components/FollowListModal';
 
 const Profile = () => {
   const { id } = useParams(); // Lấy ID từ URL nếu đang xem profile người khác
@@ -24,6 +26,21 @@ const Profile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [, setIsLoadingProfile] = useState(false);
+  
+  const [stats, setStats] = useState({ followerCount: 0, followingCount: 0 });
+  const [modalType, setModalType] = useState<'followers' | 'following'>('followers');
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (profileId) {
+      interactionService.getFollowStats(profileId).then(data => {
+        setStats({
+          followerCount: data.followerCount,
+          followingCount: data.followingUserCount + data.followingArtistCount
+        });
+      }).catch(console.error);
+    }
+  }, [profileId]);
 
   useEffect(() => {
     if (id && id !== user?.id) {
@@ -212,6 +229,10 @@ const Profile = () => {
           <div className="flex items-center gap-3 mt-4 text-spotify-subtext text-sm">
             <span>@{profileUserName}</span>
             <span>•</span>
+            <span className="text-white hover:underline cursor-pointer" onClick={() => { setModalType('followers'); setIsFollowModalOpen(true); }}><strong className="font-bold">{stats.followerCount}</strong> followers</span>
+            <span>•</span>
+            <span className="text-white hover:underline cursor-pointer" onClick={() => { setModalType('following'); setIsFollowModalOpen(true); }}><strong className="font-bold">{stats.followingCount}</strong> following</span>
+            <span>•</span>
             <span className="flex items-center gap-1 cursor-pointer hover:text-white transition" title="Sao chép ID" onClick={handleCopyId}>
               ID: {profileId?.substring(0, 8)}... <FiCopy />
             </span>
@@ -283,6 +304,15 @@ const Profile = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL DANH SÁCH FOLLOW */}
+      {isFollowModalOpen && profileId && (
+        <FollowListModal
+          userId={profileId}
+          type={modalType}
+          onClose={() => setIsFollowModalOpen(false)}
+        />
       )}
     </div>
   );

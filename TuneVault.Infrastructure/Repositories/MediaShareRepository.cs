@@ -84,23 +84,63 @@ namespace TuneVault.Infrastructure.Repositories
         }
 
         // 🌟 ĐOẠN CODE CHỐNG SPAM ĐÃ ĐƯỢC ĐỒNG BỘ HOÀN TOÀN VỚI CƠ SỞ DỮ LIỆU CỦA NHÓM:
-        public async Task<bool> HasSharedInLast24HoursAsync(string senderId, string receiverId, Guid? mediaItemId, CancellationToken cancellationToken)
+        public async Task<bool> HasSharedInLast24HoursAsync(string senderId, string receiverId, Guid? mediaItemId, Guid? playlistId, CancellationToken cancellationToken)
         {
-            // Nếu lượt chia sẻ không chứa bài hát cụ thể (ví dụ chia sẻ playlist rỗng) thì không check spam bài hát
-            if (mediaItemId == null) return false;
+            // Nếu không chia sẻ media hay playlist nào thì bỏ qua
+            if (mediaItemId == null && playlistId == null) return false;
 
-            // Truy vấn trực tiếp vào bảng MediaShare của nhóm bạn để check lịch sử gửi trong vòng 1 ngày qua
+            // Kiểm tra theo mediaItemId nếu có
+            if (mediaItemId != null)
+            {
+                const string sql = @"
+                    SELECT COUNT(1) 
+                    FROM MediaShare 
+                    WHERE SenderId = @SenderId 
+                      AND ReceiverId = @ReceiverId 
+                      AND MediaItemId = @MediaItemId 
+                      AND SharedAt >= DATEADD(day, -1, GETDATE());";
+
+                var count = await _dbConnection.ExecuteScalarAsync<int>(new CommandDefinition(
+                    sql, 
+                    new { SenderId = senderId, ReceiverId = receiverId, MediaItemId = mediaItemId }, 
+                    cancellationToken: cancellationToken
+                ));
+                if (count > 0) return true;
+            }
+
+            // Kiểm tra theo playlistId nếu có
+            if (playlistId != null)
+            {
+                const string sql = @"
+                    SELECT COUNT(1) 
+                    FROM MediaShare 
+                    WHERE SenderId = @SenderId 
+                      AND ReceiverId = @ReceiverId 
+                      AND PlaylistId = @PlaylistId 
+                      AND SharedAt >= DATEADD(day, -1, GETDATE());";
+
+                var count = await _dbConnection.ExecuteScalarAsync<int>(new CommandDefinition(
+                    sql, 
+                    new { SenderId = senderId, ReceiverId = receiverId, PlaylistId = playlistId }, 
+                    cancellationToken: cancellationToken
+                ));
+                if (count > 0) return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> IsPlaylistSharedWithUserAsync(Guid playlistId, string userId, CancellationToken cancellationToken = default)
+        {
             const string sql = @"
                 SELECT COUNT(1) 
                 FROM MediaShare 
-                WHERE SenderId = @SenderId 
-                  AND ReceiverId = @ReceiverId 
-                  AND MediaItemId = @MediaItemId 
-                  AND SharedAt >= DATEADD(day, -1, GETDATE());";
-
+                WHERE PlaylistId = @PlaylistId 
+                  AND ReceiverId = @ReceiverId;";
+            
             var count = await _dbConnection.ExecuteScalarAsync<int>(new CommandDefinition(
                 sql, 
-                new { SenderId = senderId, ReceiverId = receiverId, MediaItemId = mediaItemId }, 
+                new { PlaylistId = playlistId, ReceiverId = userId }, 
                 cancellationToken: cancellationToken
             ));
 

@@ -115,23 +115,30 @@ namespace TuneVault.API.Controllers
                 return BadRequest(new { success = false, message = "Phải cung cấp MediaItemId hoặc PlaylistId để chia sẻ." });
             }
 
-            var command = new ShareMediaCommand
+            try
             {
-                SenderId = senderId,
-                ReceiverUsername = request.ReceiverUsername,
-                MediaItemId = request.MediaItemId,
-                PlaylistId = request.PlaylistId
-            };
+                var command = new ShareMediaCommand
+                {
+                    SenderId = senderId,
+                    ReceiverUsername = request.ReceiverUsername,
+                    MediaItemId = request.MediaItemId,
+                    PlaylistId = request.PlaylistId
+                };
 
-            var resultId = await _mediator.Send(command);
+                var resultId = await _mediator.Send(command);
 
-            // Tinh chỉnh kết quả check spam từ handler trả về Guid.Empty
-            if (resultId == Guid.Empty)
-            {
-                return BadRequest(new { success = false, message = "Bạn đã chia sẻ bài hát này gần đây rồi. Vui lòng không spam!" });
+                // Tinh chỉnh kết quả check spam từ handler trả về Guid.Empty
+                if (resultId == Guid.Empty)
+                {
+                    return BadRequest(new { success = false, message = "Bạn đã chia sẻ nội dung này gần đây rồi. Vui lòng không spam!" });
+                }
+
+                return Ok(new { success = true, data = resultId, message = "Chia sẻ thành công, đã lưu vào hộp thư!" });
             }
-
-            return Ok(new { success = true, data = resultId, message = "Chia sẻ thành công, đã lưu vào hộp thư!" });
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
         
         [HttpPost("upload-image")]

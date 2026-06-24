@@ -51,6 +51,13 @@ public class PlaylistsController : ControllerBase
         [FromBody] UpdatePlaylistCommand command,
         CancellationToken cancellationToken)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Không tìm thấy thông tin xác thực (User Id).");
+        }
+
+        command.OwnerId = userId;
         command.PlaylistId = playlistId;
 
         var result = await _mediator.Send(command, cancellationToken);
@@ -78,8 +85,9 @@ public class PlaylistsController : ControllerBase
         Guid playlistId,
         CancellationToken cancellationToken)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var result = await _mediator.Send(
-            new GetPlaylistDetailQuery(playlistId),
+            new GetPlaylistDetailQuery(playlistId, userId),
             cancellationToken);
 
         return Ok(result);

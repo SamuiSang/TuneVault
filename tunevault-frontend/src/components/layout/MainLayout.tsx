@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './SideBar';
 import Topbar from './TopBar';
 import PlayerBar from './PlayerBar';
@@ -10,9 +10,10 @@ import { usePlayer } from '../../hooks/usePlayer';
 
 // ---> ĐÂY LÀ PHẦN MAIN LAYOUT (KIẾN TRÚC ISLAND CỦA SPOTIFY) <---
 const MainLayout = () => {
-    const { currentTrack, queue, currentIndex } = usePlayer();
+    const { currentTrack, queue, currentIndex, setQueue } = usePlayer();
     const [rightPanelMode, setRightPanelMode] = useState<'nowPlaying' | 'queue'>('nowPlaying');
     const navigate = useNavigate();
+    const location = useLocation();
 
     // ---> BỔ SUNG: Move logic SignalR từ ShareInbox lên cấp cao nhất (MainLayout) <---
     // Tạm lấy token từ localStorage (sau này ráp với AuthContext của Thành)
@@ -28,11 +29,33 @@ const MainLayout = () => {
             // Lắng nghe sự kiện từ Backend ở tầng Layout để mọi trang đều bắt được
             connection.on('ReceiveNotification', (message: any) => {
                 console.log("Có thông báo mới (Global):", message);
-                // Bật Toast nhảy lên màn hình bất kể người dùng đang ở trang nào
-                toast.success('🎵 Có người vừa chia sẻ bài hát cho bạn!', {
+                let text = '🎵 Có thông báo mới!';
+                const msgType = message?.type || message?.Type;
+                
+                // Try to extract dynamic message from payload
+                let dynamicMessage = '';
+                try {
+                    const payloadObj = message?.payload || message?.Payload;
+                    if (payloadObj && (payloadObj.message || payloadObj.Message)) {
+                        dynamicMessage = payloadObj.message || payloadObj.Message;
+                    } else if (message?.payloadJson) {
+                        const parsed = typeof message.payloadJson === 'string' ? JSON.parse(message.payloadJson) : message.payloadJson;
+                        dynamicMessage = parsed.message || parsed.Message || '';
+                    }
+                } catch(e) {}
+
+                if (msgType === 'Share' || msgType === 'MediaShare') {
+                    text = dynamicMessage ? `🎵 ${dynamicMessage}` : '🎵 Có người vừa chia sẻ bài hát cho bạn!';
+                } else if (msgType === 'Follow') {
+                    text = dynamicMessage ? `🔔 ${dynamicMessage}` : '🔔 Có người vừa theo dõi bạn!';
+                }
+                
+                toast.success(text, {
                     position: "top-right",
                     autoClose: 5000,
                 });
+
+                window.dispatchEvent(new Event('new_notification'));
             });
         }
         
@@ -123,9 +146,15 @@ const MainLayout = () => {
                                 <h4 className="font-bold text-white mb-3 text-sm">Tiếp theo</h4>
                                 {queue.length > currentIndex + 1 ? (
                                     <ul className="flex flex-col gap-1">
-                                        {queue.slice(currentIndex + 1).map((track, idx) => (
-                                            <li key={`${track.id}-${idx}`} className="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors cursor-pointer group">
-                                                <img src={track.thumbnailUrl || 'default-cover.png'} alt="cover" className="w-10 h-10 object-cover rounded shadow" />
+                                        {queue.slice(currentIndex + 1).map((track, idx) => {
+                                            const actualIndex = currentIndex + 1 + idx;
+                                            return (
+                                                <li 
+                                                  key={`${track.id}-${idx}`} 
+                                                  className="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors cursor-pointer group"
+                                                  onClick={() => setQueue(queue, actualIndex)}
+                                                >
+                                                    <img src={track.thumbnailUrl || 'default-cover.png'} alt="cover" className="w-10 h-10 object-cover rounded shadow" />
                                                 <div className="flex flex-col overflow-hidden text-left flex-1">
                                                     <span className="text-sm truncate text-white group-hover:text-spotify-primary transition-colors">{track.title}</span>
                                                     <span 
@@ -135,8 +164,9 @@ const MainLayout = () => {
                                                       {track.ownerName || track.ownerId}
                                                     </span>
                                                 </div>
-                                            </li>
-                                        ))}
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 ) : (
                                     <p className="text-sm text-spotify-subtext italic mt-4 text-center">Hàng đợi trống</p>
@@ -149,12 +179,14 @@ const MainLayout = () => {
             </div>
             
             {/* Bottom Player Bar - Nằm sát dưới cùng và được bo góc */}
-            <div className="w-full h-[90px] shrink-0 bg-black rounded-lg">
-                <PlayerBar 
-                  onToggleQueue={() => setRightPanelMode(prev => prev === 'queue' ? 'nowPlaying' : 'queue')} 
-                  isQueueOpen={rightPanelMode === 'queue'} 
-                />
-            </div>
+            {!location.pathname.includes('/video/') && (
+                <div className="w-full h-[90px] shrink-0 bg-black rounded-lg">
+                    <PlayerBar 
+                      onToggleQueue={() => setRightPanelMode(prev => prev === 'queue' ? 'nowPlaying' : 'queue')} 
+                      isQueueOpen={rightPanelMode === 'queue'} 
+                    />
+                </div>
+            )}
         </div>
     );
 };

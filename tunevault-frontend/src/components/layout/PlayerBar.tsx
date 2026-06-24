@@ -5,9 +5,11 @@ import { usePlayer } from '../../hooks/usePlayer';
 import { FiVolume2, FiVolumeX, FiList, FiShare2, FiMonitor } from 'react-icons/fi'; 
 import { FaHeart } from 'react-icons/fa';
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ShareModal from '../ShareModal'; 
 import { interactionService } from '../../services/interactionService';
+import { mediaService } from '../../services/mediaService';
+import type { MediaItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface PlayerBarProps {
@@ -17,19 +19,35 @@ interface PlayerBarProps {
 
 const PlayerBar: React.FC<PlayerBarProps> = ({ onToggleQueue, isQueueOpen }) => {
   // ---> BỔ SUNG CHO HIẾU: Gọi playNext, playPrev từ Context <---
-  const { currentTrack, streamUrl, isLoading, playNext, playPrev } = usePlayer(); 
+  const { currentTrack, streamUrl, isLoading, playNext, playPrev, setQueue } = usePlayer(); 
   const playerRef = useRef<AudioPlayer>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const [volume, setVolume] = useState<number>(() => {
     const savedVol = localStorage.getItem('playerVolume');
     return savedVol !== null ? parseFloat(savedVol) : 1;
   });
   
-  // ĐÃ THÊM: State quản lý việc đóng/mở Modal Share
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [alternativeTrack, setAlternativeTrack] = useState<MediaItem | null>(null);
   const { user } = useAuth();
   
+  useEffect(() => {
+    if (currentTrack) {
+      mediaService.getAllMedia().then(all => {
+        const cleanTitle = (title: string) => title.replace(/\(mp3\)|\(m\/v\)/gi, '').trim().toLowerCase();
+        const currentClean = cleanTitle(currentTrack.title);
+        
+        let alt = all.find(t => t.type !== currentTrack.type && cleanTitle(t.title) === currentClean);
+        
+        setAlternativeTrack(alt || null);
+      });
+    } else {
+      setAlternativeTrack(null);
+    }
+  }, [currentTrack]);
+
   useEffect(() => {
     const checkLiked = async () => {
       const userId = user?.id || localStorage.getItem('userId');
@@ -76,6 +94,12 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ onToggleQueue, isQueueOpen }) => 
     }
   }, [volume]);
 
+  useEffect(() => {
+    const handlePause = () => playerRef.current?.audio.current?.pause();
+    window.addEventListener('pause_audio', handlePause);
+    return () => window.removeEventListener('pause_audio', handlePause);
+  }, []);
+
   const handlePlayVideo = () => {
     if (currentTrack?.type === 'Video') {
       playerRef.current?.audio.current?.pause();
@@ -117,6 +141,31 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ onToggleQueue, isQueueOpen }) => 
                 <FaHeart className="text-xl" />
               </button>
               
+              {/* ĐÃ THÊM: Nút Switch MP3/MP4 (Chỉ hiện khi đang nghe Audio và KHÔNG ở trang Video) */}
+              {currentTrack.type !== 'Video' && !location.pathname.includes('/video/') && (
+                <button 
+                  onClick={() => {
+                    if (alternativeTrack) {
+                       if (alternativeTrack.type === 'Video') {
+                          playerRef.current?.audio.current?.pause();
+                          navigate(`/video/${alternativeTrack.id}`, { state: { videoData: alternativeTrack, noQueue: true } });
+                       } else {
+                          // Bỏ switch từ Video về Audio
+                          if (window.location.pathname.includes('/video/')) {
+                             navigate(-1);
+                          }
+                       }
+                    } else {
+                       alert("Không tìm thấy phiên bản " + (currentTrack.type === 'Audio' ? 'MP4' : 'MP3') + " của bài hát này!");
+                    }
+                  }}
+                  className={`ml-3 px-2 py-1 text-[10px] font-bold rounded border transition-all ${alternativeTrack ? 'border-spotify-primary text-spotify-primary hover:bg-spotify-primary hover:text-black cursor-pointer shadow-[0_0_8px_rgba(29,215,96,0.5)]' : 'border-gray-600 text-gray-600 cursor-not-allowed opacity-50'}`}
+                  title={alternativeTrack ? `Chuyển sang ${alternativeTrack.type}` : 'Không có phiên bản khác'}
+                >
+                  {currentTrack.type === 'Audio' ? 'MP4' : 'MP3'}
+                </button>
+              )}
+
               {/* ĐÃ THÊM: Nút Share Nhạc (Nằm kế bên tên bài hát) */}
               <button 
                 onClick={() => setIsShareModalOpen(true)}
@@ -154,9 +203,16 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ onToggleQueue, isQueueOpen }) => 
 
           <AudioPlayer
             ref={playerRef} 
-            autoPlay={true}
-            src={streamUrl || undefined} 
-            onPlay={() => console.log("onPlay", currentTrack?.title)}
+            autoPlay={currentTrack?.type !== 'Video'}
+            src={currentTrack?.type !== 'Video' ? streamUrl || undefined : undefined} 
+            onPlay={() => {
+              if (currentTrack?.id) {
+                const currentUserId = user?.id || localStorage.getItem('userId');
+                if (currentUserId) {
+                  interactionService.addPlayHistory(currentUserId, currentTrack.id).catch(e => console.error(e));
+                }
+              }
+            }}
             
             // ---> BỔ SUNG CHO HIẾU: Bật nút bấm và tự động Next <---
             showSkipControls={true}

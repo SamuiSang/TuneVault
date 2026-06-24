@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getSharedWithMe, deleteSharedItems } from '../services/playlistService';
 import { usePlayer } from '../hooks/usePlayer';
 import { FiPlay, FiTrash2 } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const ShareInbox = () => {
     const { user, token } = useAuth();
@@ -20,6 +21,7 @@ const ShareInbox = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     
     const { playTrack } = usePlayer();
+    const navigate = useNavigate();
 
     const fetchSharedMedia = async () => {
         if (user?.id) {
@@ -59,6 +61,11 @@ const ShareInbox = () => {
     const handlePlay = (item: any) => {
         // Trong chế độ chọn thì vô hiệu hóa bấm phát nhạc
         if (isSelectionMode) return;
+
+        if (item.type === 'Playlist') {
+            navigate(`/playlist/${item.playlistId}`);
+            return;
+        }
 
         playTrack({
             id: item.mediaId,
@@ -144,7 +151,7 @@ const ShareInbox = () => {
                                         {item.title}
                                     </p>
                                     <p className="text-spotify-subtext text-sm">
-                                        Từ: <span className="font-semibold text-white">{item.senderName}</span> • {new Date(item.sharedAt).toLocaleString()}
+                                        Từ: <span className="font-semibold text-white">{item.senderName}</span> • {new Date(item.sharedAt?.endsWith('Z') ? item.sharedAt : item.sharedAt + 'Z').toLocaleString('vi-VN')}
                                     </p>
                                 </div>
                             </div>
@@ -153,7 +160,7 @@ const ShareInbox = () => {
                                     onClick={() => handlePlay(item)}
                                     className="px-4 py-2 bg-[#1ed760] text-black font-bold rounded-full text-sm hover:scale-105 transition opacity-0 group-hover:opacity-100"
                                 >
-                                    Phát Nhạc
+                                    {item.type === 'Playlist' ? 'Xem Playlist' : 'Phát Nhạc'}
                                 </button>
                             )}
                         </li>

@@ -43,7 +43,8 @@ public class PlaylistRepository : IPlaylistRepository
             UPDATE Playlist
             SET
                 Name = @Name,
-                IsPublic = @IsPublic
+                IsPublic = @IsPublic,
+                CoverImageUrl = @CoverImageUrl
             WHERE Id = @Id
               AND OwnerId = @OwnerId;";
 
@@ -113,6 +114,7 @@ public class PlaylistRepository : IPlaylistRepository
                 p.Name,
                 p.OwnerId,
                 p.IsPublic,
+                p.CoverImageUrl,
                 COUNT(pt.MediaItemId) AS TotalTracks
             FROM Playlist p
             LEFT JOIN PlaylistTrack pt
@@ -122,7 +124,8 @@ public class PlaylistRepository : IPlaylistRepository
                 p.Id,
                 p.Name,
                 p.OwnerId,
-                p.IsPublic
+                p.IsPublic,
+                p.CoverImageUrl
             ORDER BY p.Name;";
 
         return await _db.QueryAsync<PlaylistDto>(
@@ -138,7 +141,8 @@ public class PlaylistRepository : IPlaylistRepository
                 Id,
                 Name,
                 OwnerId,
-                IsPublic
+                IsPublic,
+                CoverImageUrl
             FROM Playlist
             WHERE Id = @PlaylistId;";
 

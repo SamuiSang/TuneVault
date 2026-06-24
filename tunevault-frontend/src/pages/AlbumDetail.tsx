@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { usePlayer } from "../hooks/usePlayer";
 import { albumService, type AlbumDetail } from "../services/albumService";
 import type { MediaItem } from "../types";
@@ -7,6 +7,7 @@ import { FaPlay, FaHeart, FaEllipsisH } from "react-icons/fa";
 
 const AlbumDetailView = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { currentTrack, setQueue } = usePlayer();
   const [album, setAlbum] = useState<AlbumDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -55,14 +56,22 @@ const AlbumDetailView = () => {
 
   const handlePlayAll = () => {
     if (tracks.length > 0) {
-      setQueue(tracks);
+      const audioTracks = tracks.filter(t => t.type === 'Audio');
+      if (audioTracks.length > 0) {
+        setQueue(audioTracks);
+      }
     }
   };
 
   const handlePlayTrack = (track: MediaItem) => {
-    const trackIndex = tracks.findIndex(t => t.id === track.id);
+    if (track.type === 'Video') {
+      navigate(`/video/${track.id}`, { state: { videoData: track } });
+      return;
+    }
+    const audioTracks = tracks.filter(t => t.type === 'Audio');
+    const trackIndex = audioTracks.findIndex(t => t.id === track.id);
     if (trackIndex !== -1) {
-      const queueTracks = [...tracks.slice(trackIndex), ...tracks.slice(0, trackIndex)];
+      const queueTracks = [...audioTracks.slice(trackIndex), ...audioTracks.slice(0, trackIndex)];
       setQueue(queueTracks);
     }
   };

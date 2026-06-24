@@ -15,4 +15,6 @@ public class UpdatePlaylistCommand : IRequest<bool>
 
     
     public string OwnerId { get; set; } = string.Empty;
+
+    public string? CoverImageUrl { get; set; }
 }

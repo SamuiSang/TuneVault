@@ -45,6 +45,7 @@ namespace TuneVault.Application.Features.Playlist.Commands.UpdatePlaylist
                 Id = request.PlaylistId,
                 Name = request.Name,
                 IsPublic = request.IsPublic,
+                CoverImageUrl = request.CoverImageUrl ?? existingPlaylist.CoverImageUrl,
                 OwnerId = existingPlaylist.OwnerId // Giữ nguyên Owner cũ dưới DB cho an toàn
             };
 

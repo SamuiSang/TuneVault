@@ -18,13 +18,18 @@ public FollowArtistCommandHandler(
     _notificationService = notificationService;
 }
 
-public async Task<Guid> Handle(
-    FollowArtistCommand request,
-    CancellationToken cancellationToken)
-{
-    var exists = await _followRepository.ExistsAsync(
-        request.FollowerId,
-        request.FolloweeId);
+    public async Task<Guid> Handle(
+        FollowArtistCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.FollowerId == request.FolloweeId)
+        {
+            throw new Exception("Bạn không thể tự theo dõi chính mình.");
+        }
+
+        var exists = await _followRepository.ExistsAsync(
+            request.FollowerId,
+            request.FolloweeId);
 
     if (exists)
         throw new Exception("Already followed.");

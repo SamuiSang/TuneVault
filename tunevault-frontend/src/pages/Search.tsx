@@ -3,7 +3,8 @@ import { useSearchParams, Link } from "react-router-dom";
 import {
   searchMedia,
   searchArtists,
-  searchPlaylists
+  searchPlaylists,
+  searchUsers
 } from "../services/searchService";
 // ---> BỔ SUNG CHO TUÂN: Import Modal Thêm Track <---
 import AddTrackModal from "../components/AddTrackModal";
@@ -18,6 +19,7 @@ export default function Search() {
   const [media, setMedia] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   // ---> BỔ SUNG CHO TUÂN: State quản lý modal thêm bài hát <---
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
@@ -32,15 +34,17 @@ export default function Search() {
       }
 
       try {
-        const [mediaRes, artistRes, playlistRes] = await Promise.all([
+        const [mediaRes, artistRes, playlistRes, userRes] = await Promise.all([
           searchMedia(keyword),
           searchArtists(keyword),
-          searchPlaylists(keyword)
+          searchPlaylists(keyword),
+          searchUsers(keyword)
         ]);
 
         setMedia(mediaRes);
         setArtists(artistRes);
         setPlaylists(playlistRes);
+        setUsers(userRes);
       } catch (error) {
         console.error(error);
       }
@@ -127,6 +131,28 @@ export default function Search() {
             <Link key={playlist.id} to={`/playlist/${playlist.id}`} className="block">
               <div className="bg-zinc-800 p-4 rounded mb-2 font-bold hover:bg-zinc-700">
                 {playlist.name}
+              </div>
+            </Link>
+          ))}
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">Users</h2>
+          {users.length === 0 && <p className="text-spotify-subtext">Không có người dùng nào khớp.</p>}
+          {users.map((user) => (
+            <Link key={user.id} to={`/profile/${user.id}`} className="block">
+              <div className="bg-zinc-800 p-4 rounded mb-2 flex items-center hover:bg-zinc-700">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.displayName} className="w-10 h-10 rounded-full mr-4 object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-zinc-600 mr-4 flex items-center justify-center font-bold text-lg">
+                    {user.displayName?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="font-bold text-white">{user.displayName}</p>
+                  <p className="text-sm text-spotify-subtext">@{user.userName}</p>
+                </div>
               </div>
             </Link>
           ))}

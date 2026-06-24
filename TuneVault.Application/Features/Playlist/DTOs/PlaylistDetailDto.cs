@@ -17,6 +17,8 @@ public class PlaylistDetailDto
     
     public string OwnerId { get; set; } = string.Empty;
 
+    public string? CoverImageUrl { get; set; }
+
     
     public int TotalTracks { get; set; }
 

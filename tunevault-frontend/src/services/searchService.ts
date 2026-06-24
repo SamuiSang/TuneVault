@@ -25,3 +25,11 @@ export const searchPlaylists = async (keyword: string) => {
 
   return response.data;
 };
+
+export const searchUsers = async (keyword: string) => {
+  const response = await api.get(`${API_URL}/users`, {
+    params: { keyword }
+  });
+
+  return response.data;
+};

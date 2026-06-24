@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPlaylistDetail, removeTrackFromPlaylist, addTrackToPlaylist, deletePlaylist } from "../services/playlistService";
+import { getPlaylistDetail, removeTrackFromPlaylist, addTrackToPlaylist, deletePlaylist, updatePlaylist } from "../services/playlistService";
 import { mediaService } from "../services/mediaService";
+import api from "../services/api";
 import { toast } from 'react-toastify'; 
-import { FiTrash2, FiPlus, FiMusic } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiMusic, FiShare2 } from 'react-icons/fi';
 import { FaPlay } from 'react-icons/fa';
 import { usePlayer } from '../hooks/usePlayer';
+import ShareModal from '../components/ShareModal';
 
 type Track = {
   id: string;
@@ -20,7 +22,8 @@ type PlaylistDetail = {
   name: string;
   description?: string;
   userId?: string;     
-  isPrivate?: boolean;  
+  isPublic?: boolean;
+  coverImageUrl?: string;
   tracks?: Track[];
 };
 
@@ -35,6 +38,7 @@ export default function Playlist() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Track[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const currentUserId = localStorage.getItem("userId") || "user-current-id";
 
@@ -94,8 +98,9 @@ export default function Playlist() {
     try {
       const allTracks = await mediaService.getAllMedia();
       const filtered = (allTracks as any[]).filter(track => 
-        track.title?.toLowerCase().includes(query.toLowerCase()) ||
-        track.artistName?.toLowerCase().includes(query.toLowerCase())
+        (track.title?.toLowerCase().includes(query.toLowerCase()) ||
+        track.artistName?.toLowerCase().includes(query.toLowerCase())) &&
+        track.type === 'Audio'
       );
       setSearchResults(filtered);
     } catch (err) {
@@ -120,7 +125,12 @@ export default function Playlist() {
 
   const handlePlayPlaylist = () => {
     if (playlist?.tracks && playlist.tracks.length > 0) {
-      setQueue(playlist.tracks as any);
+      const audioTracks = playlist.tracks.filter((t: any) => t.type === 'Audio' || !t.type); // Fallback if type is missing
+      if (audioTracks.length > 0) {
+        setQueue(audioTracks as any);
+      } else {
+        toast.warning("Playlist không có bài hát MP3 nào!");
+      }
     } else {
       toast.warning("Playlist chưa có bài hát nào!");
     }
@@ -157,15 +167,62 @@ export default function Playlist() {
   return (
     <div className="p-6 text-white pb-24">
       <div className="mb-8 flex items-end gap-6 bg-gradient-to-b from-zinc-800 to-transparent p-6 rounded-xl">
-        <div className="w-40 h-40 bg-zinc-800 flex items-center justify-center rounded-lg shadow-2xl border border-zinc-700">
-          <FiMusic className="text-5xl text-zinc-500" />
+        <div className="relative w-40 h-40 bg-zinc-800 flex items-center justify-center rounded-lg shadow-2xl border border-zinc-700 overflow-hidden group">
+          {playlist.coverImageUrl ? (
+            <img src={playlist.coverImageUrl} alt={playlist.name} className="w-full h-full object-cover" />
+          ) : (
+            <FiMusic className="text-5xl text-zinc-500" />
+          )}
+          {isOwner && (
+            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+              <span className="text-xs text-white font-bold bg-black/50 px-3 py-1 rounded-full">Thay ảnh</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (!id) return;
+                  
+                  try {
+                    const toastId = toast.loading("Đang tải ảnh lên...");
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const response = await api.post('/media/upload-image', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    
+                    if (response.data?.success) {
+                      const imageUrl = response.data.data;
+                      
+                      // Cập nhật URL ảnh mới vào DB
+                      await updatePlaylist(id, {
+                        name: playlist.name,
+                        coverImageUrl: imageUrl,
+                        isPublic: playlist.isPublic
+                      });
+                      
+                      toast.update(toastId, { render: "Đã cập nhật ảnh bìa!", type: "success", isLoading: false, autoClose: 3000 });
+                      loadPlaylist(id);
+                      window.dispatchEvent(new Event('playlist_updated'));
+                    }
+                  } catch (err) {
+                    console.error("Lỗi upload ảnh:", err);
+                    toast.error("Không thể cập nhật ảnh bìa.");
+                  }
+                }}
+              />
+            </label>
+          )}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-gray-400 tracking-wider">
             <span>Playlist</span>
             <span>•</span>
             <span className="text-zinc-500">
-              {playlist.isPrivate ? "Riêng tư" : "Công khai"}
+              {playlist.isPublic ? "Công khai" : "Riêng tư"}
             </span>
           </div>
           <h1 className="text-4xl font-extrabold my-2 text-white">
@@ -193,6 +250,12 @@ export default function Playlist() {
                 Xóa danh sách này
               </button>
             )}
+            <button 
+                onClick={() => setShowShareModal(true)}
+                className="text-xs text-white hover:text-spotify-primary font-bold border border-white/30 hover:border-spotify-primary px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ml-2"
+            >
+                <FiShare2 /> Chia sẻ
+            </button>
           </div>
         </div>
       </div>
@@ -282,6 +345,14 @@ export default function Playlist() {
             </div>
           )}
         </section>
+      )}
+
+      {showShareModal && playlist && (
+        <ShareModal 
+          playlistId={playlist.id}
+          mediaTitle={`Playlist: ${playlist.name}`}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </div>
   );
