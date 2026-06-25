@@ -73,7 +73,9 @@ builder.Services.AddSwaggerGen(c =>
             new List<string>()
         }
     });
- 
+    
+    // FIX SWAGGER ERROR: Xử lý trùng lặp tên class giữa các thư mục (ví dụ FollowArtistCommand)
+    c.CustomSchemaIds(type => type.FullName);
 });
 // ---> CẤU HÌNH IDENTITY CHẠY ĐỘC LẬP (KHÔNG DÙNG EF CORE) <---
 builder.Services.AddIdentityCore<AppUser>(options => {
